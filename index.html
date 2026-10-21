@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CassaBet Style Mini App</title>
+    <!-- Import Telegram WebApp JavaScript SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #17212b;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .card {
+            background-color: #242f3d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .balance {
+            font-size: 24px;
+            color: #4ba3e3;
+            font-weight: bold;
+        }
+        .btn {
+            background-color: #3390ec;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🎰 Welcome to CassaBet Demo</h2>
+    
+    <div class="card">
+        <p>User: <span id="user-name">Loading...</span></p>
+        <div class="balance">Balance: <span id="balance">1000</span> ETB</div>
+        <button class="btn" onclick="playGame()">🎲 Spin & Win</button>
+    </div>
+
+    <script>
+        // Initialize Telegram WebApp SDK
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Make app open in full screen
+
+        // Display Telegram user info
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById("user-name").innerText = tg.initDataUnsafe.user.first_name;
+        } else {
+            document.getElementById("user-name").innerText = "Guest Player";
+        }
+
+        let currentBalance = 1000;
+
+        function playGame() {
+            if (currentBalance < 50) {
+                tg.showAlert("Insufficient balance!");
+                return;
+            }
+            
+            currentBalance -= 50;
+            let win = Math.random() > 0.5;
+            
+            if (win) {
+                currentBalance += 100;
+                tg.showAlert("🎉 You won 100 ETB!");
+            } else {
+                tg.showAlert("😢 Better luck next time!");
+            }
+            
+            document.getElementById("balance").innerText = currentBalance;
+        }
+    </script>
+</body>
+</html>
