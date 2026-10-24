@@ -1,239 +1,263 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Arcade Probability Lab</title>
+  <title>Arcade Dashboard Lab</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --accent: #38bdf8;
-      --success: #22c55e;
-      --danger: #ef4444;
-      --text: #f8fafc;
+      --bg: #0f172a; --card: #1e293b; --accent: #38bdf8;
+      --success: #22c55e; --danger: #ef4444; --text: #f8fafc;
     }
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 16px;
-      text-align: center;
+      font-family: system-ui, sans-serif; background: var(--bg);
+      color: var(--text); margin: 0; padding: 12px; text-align: center;
     }
-    .banner {
-      background: linear-gradient(90deg, #4f46e5, #0ea5e9);
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 16px;
-    }
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
     .tab-btn {
-      flex: 1;
-      padding: 10px;
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid #334155;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
+      flex: 1; padding: 10px; background: var(--card); color: var(--text);
+      border: 1px solid #334155; border-radius: 8px; cursor: pointer; font-weight: 600;
     }
-    .tab-btn.active {
-      border-color: var(--accent);
-      background: #1e3a8a;
-    }
+    .tab-btn.active { border-color: var(--accent); background: #1e3a8a; }
     .card {
-      background: var(--card);
-      padding: 20px;
-      border-radius: 14px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      background: var(--card); padding: 20px; border-radius: 14px;
+      margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
-    .multiplier-display {
-      font-size: 3rem;
-      font-weight: 800;
-      margin: 20px 0;
-      color: var(--accent);
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
     }
+    .stat-box { background: #334155; padding: 15px; border-radius: 10px; }
+    .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
     .btn {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 8px;
+      width: 100%; padding: 14px; border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 8px;
     }
     .btn-primary { background: var(--accent); color: #0f172a; }
     .btn-success { background: var(--success); color: #0f172a; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin: 16px 0;
+    .btn-danger { background: var(--danger); color: #fff; }
+    
+    /* Canvas styling */
+    canvas {
+      width: 100%; height: 200px; background: #0f172a;
+      border: 2px solid #334155; border-radius: 10px; margin-bottom: 15px;
     }
+    .multiplier-display {
+      font-size: 2.5rem; font-weight: 800; margin: 10px 0; color: var(--accent);
+    }
+    
+    /* Chicken Grid */
+    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 16px 0; }
     .tile {
-      background: #334155;
-      padding: 18px 0;
-      border-radius: 8px;
-      font-size: 1.3rem;
-      cursor: pointer;
-      user-select: none;
+      background: #334155; padding: 18px 0; border-radius: 8px;
+      font-size: 1.3rem; cursor: pointer; user-select: none;
     }
+    .history-log { text-align: left; font-size: 0.9rem; margin-top: 10px; }
+    .history-item { padding: 6px 0; border-bottom: 1px solid #334155; }
   </style>
 </head>
 <body>
 
-  <div class="banner" id="promoBanner">
-    🚀 Lab Event: Claim +500 Virtual Study Tokens daily in the Bot Chat!
-  </div>
-
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('aviator')">✈️ Aviator Sim</button>
-    <button class="tab-btn" onclick="switchTab('chicken')">🐔 Chicken Grid</button>
+    <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('aviator')">✈️ Aviator</button>
+    <button class="tab-btn" onclick="switchTab('chicken')">🐔 Chicken</button>
   </div>
 
-  <!-- AVIATOR GAME -->
-  <div class="card" id="aviatorSection">
-    <h3>✈️ Aviator Curve Simulator</h3>
-    <p style="font-size: 0.8rem; opacity: 0.75;">Wager: 100 Virtual PTS | Formula: 97% Statistical RTP</p>
+  <!-- DASHBOARD VIEW -->
+  <div class="card" id="dashboardSection">
+    <h3>User Dashboard</h3>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div style="font-size:0.8rem">Session Profit</div>
+        <div class="stat-value" id="sessionProfit">0 PTS</div>
+      </div>
+      <div class="stat-box">
+        <div style="font-size:0.8rem">Games Played</div>
+        <div class="stat-value" id="sessionGames">0</div>
+      </div>
+    </div>
+    <div class="history-log" id="historyLog">
+      <i>Session history will appear here...</i>
+    </div>
+  </div>
+
+  <!-- AVIATOR VIEW -->
+  <div class="card" id="aviatorSection" style="display: none;">
+    <h3>✈️ Aviator Flight</h3>
+    <canvas id="aviatorCanvas" width="400" height="200"></canvas>
     <div class="multiplier-display" id="aviatorMult">1.00x</div>
-    <button class="btn btn-primary" id="aviatorBtn" onclick="toggleAviator()">Take Off (100 PTS)</button>
+    <button class="btn btn-primary" id="aviatorBtn" onclick="toggleAviator()">Wager 100 PTS</button>
   </div>
 
-  <!-- CHICKEN GAME -->
+  <!-- CHICKEN VIEW -->
   <div class="card" id="chickenSection" style="display: none;">
-    <h3>🐔 Chicken Step Grid</h3>
-    <p style="font-size: 0.8rem; opacity: 0.75;">4 Chickens (+0.25x each), 1 Fox Trap per row!</p>
+    <h3>🐔 Chicken Grid</h3>
     <div class="multiplier-display" id="chickenMult">1.00x</div>
     <div class="grid" id="chickenGrid"></div>
-    <button class="btn btn-success" onclick="cashoutChicken()">Cash Out Virtual Points</button>
+    <button class="btn btn-primary" id="chickenBtn" onclick="startChicken()">Start (100 PTS)</button>
+    <button class="btn btn-success" id="chickenCashoutBtn" onclick="cashoutChicken()" style="display:none;">Cash Out</button>
   </div>
 
   <script>
     const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+    tg.ready(); tg.expand();
 
-    // Rotate educational banners
-    const banners = [
-      "🚀 Lab Event: Claim +500 Virtual Study Tokens daily in the Bot Chat!",
-      "🎲 New Mode: Try the native /dice command inside the Telegram chat!",
-      "🤖 Tip: Ask the Gemini AI Agent in chat to inspect your virtual stats!"
-    ];
-    let bIdx = 0;
-    setInterval(() => {
-      bIdx = (bIdx + 1) % banners.length;
-      document.getElementById("promoBanner").innerText = banners[bIdx];
-    }, 4500);
+    // Session Stats
+    let sessionProfit = 0, sessionGames = 0;
+    
+    function logHistory(game, amount) {
+      sessionGames++;
+      sessionProfit += amount;
+      document.getElementById('sessionProfit').innerText = (sessionProfit >= 0 ? "+" : "") + sessionProfit + " PTS";
+      document.getElementById('sessionProfit').style.color = sessionProfit >= 0 ? "var(--success)" : "var(--danger)";
+      document.getElementById('sessionGames').innerText = sessionGames;
+      
+      const log = document.getElementById('historyLog');
+      if (log.innerHTML.includes("history will appear")) log.innerHTML = "";
+      const entry = document.createElement('div');
+      entry.className = "history-item";
+      entry.innerHTML = `<b>${game}</b>: ${amount >= 0 ? '<span style="color:#22c55e">Won</span>' : '<span style="color:#ef4444">Lost</span>'} ${Math.abs(amount)} PTS`;
+      log.prepend(entry);
+    }
+
+    function sendResult(game, netChange) {
+      logHistory(game, netChange);
+      tg.sendData(JSON.stringify({ game: game, net_change: netChange }));
+    }
 
     function switchTab(tab) {
-      document.getElementById("aviatorSection").style.display = tab === "aviator" ? "block" : "none";
-      document.getElementById("chickenSection").style.display = tab === "chicken" ? "block" : "none";
-      document.querySelectorAll(".tab-btn").forEach((b, i) => {
-        b.classList.toggle("active", (tab === "aviator" && i === 0) || (tab === "chicken" && i === 1));
+      ['dashboard', 'aviator', 'chicken'].forEach(t => {
+        document.getElementById(t + 'Section').style.display = (t === tab) ? 'block' : 'none';
       });
-      if (tab === "chicken") initChicken();
+      const btns = document.querySelectorAll('.tab-btn');
+      btns[0].classList.toggle('active', tab === 'dashboard');
+      btns[1].classList.toggle('active', tab === 'aviator');
+      btns[2].classList.toggle('active', tab === 'chicken');
     }
 
-    // --- AVIATOR LOGIC (Standard 97% RTP Formula) ---
-    let flying = false, currentMult = 1.00, crashPoint = 1.00, timer = null;
+    // --- AVIATOR ANIMATION LOGIC ---
+    const canvas = document.getElementById('aviatorCanvas');
+    const ctx = canvas.getContext('2d');
+    let flying = false, currentMult = 1.00, crashPoint = 1.00, flightTime = 0;
+    let animId = null;
 
-    function generateCrashPoint() {
-      const r = Math.random();
-      const houseEdge = 0.03;
-      return Math.max(1.00, Math.floor(((1 - houseEdge) / (1 - r)) * 100) / 100);
+    function drawFlight() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Calculate plane position based on time
+      const x = Math.min(flightTime * 2, canvas.width - 40);
+      const y = Math.max(canvas.height - (flightTime * 1.5) - 20, 30);
+
+      // Draw Curve Path
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height);
+      ctx.quadraticCurveTo(x/2, canvas.height, x, y + 10);
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4; ctx.stroke();
+
+      // Draw Plane or Crash
+      ctx.font = '30px Arial';
+      if (!flying && currentMult >= crashPoint) {
+        ctx.fillText('💥', x - 10, y + 10);
+      } else {
+        ctx.fillText('✈️', x - 10, y + 10);
+      }
     }
+
+    drawFlight(); // Initial draw
 
     function toggleAviator() {
       const btn = document.getElementById("aviatorBtn");
       const display = document.getElementById("aviatorMult");
 
       if (!flying) {
-        flying = true;
-        currentMult = 1.00;
-        crashPoint = generateCrashPoint();
-        display.style.color = "#38bdf8";
-        btn.innerText = "Cash Out Now!";
-        btn.className = "btn btn-success";
+        flying = true; flightTime = 0; currentMult = 1.00;
+        // 97% RTP Math
+        crashPoint = Math.max(1.00, Math.floor(((1 - 0.03) / (1 - Math.random())) * 100) / 100);
+        
+        display.style.color = "var(--accent)";
+        btn.innerText = "Cash Out!"; btn.className = "btn btn-success";
 
-        timer = setInterval(() => {
-          currentMult += 0.03 * currentMult;
+        function updateFrame() {
+          flightTime++;
+          currentMult += 0.01 * currentMult; // Exponential growth
+          
           if (currentMult >= crashPoint) {
-            clearInterval(timer);
             flying = false;
             display.innerText = `💥 ${crashPoint.toFixed(2)}x`;
-            display.style.color = "#ef4444";
-            btn.innerText = "Sync Loss (-100 PTS) to Bot";
-            btn.onclick = () => sendResult("Aviator", -100);
-          } else {
-            display.innerText = `${currentMult.toFixed(2)}x`;
+            display.style.color = "var(--danger)";
+            btn.innerText = "Sync Loss (-100 PTS)"; btn.className = "btn btn-danger";
+            btn.onclick = () => { sendResult("Aviator", -100); btn.innerText = "Wager 100 PTS"; btn.className = "btn btn-primary"; btn.onclick = toggleAviator; };
+            drawFlight();
+            return; // End loop
           }
-        }, 100);
+          
+          display.innerText = `${currentMult.toFixed(2)}x`;
+          drawFlight();
+          animId = setTimeout(updateFrame, 50);
+        }
+        updateFrame();
+        
       } else {
-        // Player cashed out in time
-        clearInterval(timer);
-        flying = false;
+        // Cashed out successfully
+        clearTimeout(animId); flying = false;
         const profit = Math.round(100 * currentMult) - 100;
-        display.style.color = "#22c55e";
-        btn.innerText = `Sync Win (+${profit} PTS) to Bot`;
-        btn.onclick = () => sendResult("Aviator", profit);
+        display.style.color = "var(--success)";
+        btn.innerText = `Sync Win (+${profit} PTS)`; btn.className = "btn btn-success";
+        btn.onclick = () => { sendResult("Aviator", profit); btn.innerText = "Wager 100 PTS"; btn.className = "btn btn-primary"; btn.onclick = toggleAviator; };
+        drawFlight();
       }
     }
 
     // --- CHICKEN LOGIC ---
-    let chickenMult = 1.00, trapIndex = 0, chickenOver = false;
+    let chickenMult = 1.00, trapIndex = 0, playingChicken = false;
 
-    function initChicken() {
-      chickenMult = 1.00;
-      chickenOver = false;
+    function startChicken() {
+      playingChicken = true; chickenMult = 1.00;
       trapIndex = Math.floor(Math.random() * 5);
       document.getElementById("chickenMult").innerText = "1.00x";
-      document.getElementById("chickenMult").style.color = "#38bdf8";
+      document.getElementById("chickenMult").style.color = "var(--accent)";
+      document.getElementById("chickenBtn").style.display = "none";
+      document.getElementById("chickenCashoutBtn").style.display = "block";
+      
       const grid = document.getElementById("chickenGrid");
       grid.innerHTML = "";
       for (let i = 0; i < 5; i++) {
         const tile = document.createElement("div");
-        tile.className = "tile";
-        tile.innerText = "❓";
+        tile.className = "tile"; tile.innerText = "❓";
         tile.onclick = () => clickTile(i, tile);
         grid.appendChild(tile);
       }
     }
 
     function clickTile(idx, el) {
-      if (chickenOver || el.innerText !== "❓") return;
+      if (!playingChicken || el.innerText !== "❓") return;
       if (idx === trapIndex) {
-        el.innerText = "🦊";
-        el.style.background = "#ef4444";
-        chickenOver = true;
+        el.innerText = "🦊"; el.style.background = "var(--danger)";
+        playingChicken = false;
         document.getElementById("chickenMult").innerText = "Caught! (-100 PTS)";
-        document.getElementById("chickenMult").style.color = "#ef4444";
-        setTimeout(() => sendResult("Chicken Grid", -100), 900);
+        document.getElementById("chickenMult").style.color = "var(--danger)";
+        setTimeout(() => resetChicken(-100), 1000);
       } else {
-        el.innerText = "🐔";
-        el.style.background = "#22c55e";
+        el.innerText = "🐔"; el.style.background = "var(--success)";
         chickenMult += 0.25;
         document.getElementById("chickenMult").innerText = `${chickenMult.toFixed(2)}x`;
       }
     }
 
     function cashoutChicken() {
-      if (chickenOver || chickenMult <= 1.00) return;
+      if (!playingChicken || chickenMult <= 1.00) return;
+      playingChicken = false;
       const profit = Math.round(100 * chickenMult) - 100;
-      sendResult("Chicken Grid", profit);
+      resetChicken(profit);
     }
-
-    function sendResult(game, netChange) {
-      tg.sendData(JSON.stringify({ game: game, net_change: netChange }));
+    
+    function resetChicken(netChange) {
+      sendResult("Chicken Grid", netChange);
+      document.getElementById("chickenBtn").style.display = "block";
+      document.getElementById("chickenCashoutBtn").style.display = "none";
+      document.getElementById("chickenGrid").innerHTML = "";
     }
   </script>
 </body>
