@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,97 +8,206 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #0f172a; --card: #1e293b; --accent: #38bdf8;
-      --success: #22c55e; --danger: #ef4444; --text: #f8fafc;
+      --bg: #090d16; --card: #141b2d; --accent: #f43f5e;
+      --blue: #38bdf8; --success: #22c55e; --danger: #ef4444; --text: #f8fafc;
     }
     body {
-      font-family: system-ui, sans-serif; background: var(--bg);
+      font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
       color: var(--text); margin: 0; padding: 12px; text-align: center;
     }
-    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .wallet-banner {
+      background: linear-gradient(90deg, #1e1b4b, #0f172a);
+      border: 1px solid #334155;
+      padding: 10px 14px; border-radius: 12px; margin-bottom: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .wallet-amount { font-size: 1.25rem; font-weight: 800; color: var(--success); }
+    .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
     .tab-btn {
       flex: 1; padding: 10px; background: var(--card); color: var(--text);
-      border: 1px solid #334155; border-radius: 8px; cursor: pointer; font-weight: 600;
+      border: 1px solid #263147; border-radius: 8px; cursor: pointer; font-weight: 600;
     }
-    .tab-btn.active { border-color: var(--accent); background: #1e3a8a; }
+    .tab-btn.active { border-color: var(--accent); background: #2e1020; color: #fff; }
     .card {
-      background: var(--card); padding: 20px; border-radius: 14px;
-      margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      background: var(--card); padding: 16px; border-radius: 14px;
+      margin-bottom: 14px; box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+      border: 1px solid #1f293d;
     }
-    .stats-grid {
-      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px;
+
+    /* Recent Crash History Pills */
+    .crash-pills {
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px;
+      margin-bottom: 8px; scrollbar-width: none;
     }
-    .stat-box { background: #334155; padding: 12px 6px; border-radius: 10px; }
-    .stat-value { font-size: 1.2rem; font-weight: bold; color: var(--accent); margin-top: 4px; }
-    .btn {
-      width: 100%; padding: 14px; border: none; border-radius: 10px;
-      font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 8px;
+    .pill {
+      padding: 3px 10px; border-radius: 999px; font-size: 0.75rem;
+      font-weight: 700; white-space: nowrap;
     }
-    .btn-primary { background: var(--accent); color: #0f172a; }
-    .btn-success { background: var(--success); color: #0f172a; }
-    .btn-danger { background: var(--danger); color: #fff; }
-    
+    .pill-low { background: #1e3a8a; color: #60a5fa; border: 1px solid #2563eb; }
+    .pill-mid { background: #4c1d95; color: #c084fc; border: 1px solid #7c3aed; }
+    .pill-high { background: #831843; color: #f472b6; border: 1px solid #db2777; }
+
+    /* Classic Aviator Screen Container */
+    .aviator-stage {
+      position: relative; width: 100%; height: 230px;
+      border-radius: 12px; overflow: hidden; border: 2px solid #263147;
+      margin-bottom: 12px; background: #070a12;
+    }
     canvas {
-      width: 100%; height: 200px; background: #0f172a;
-      border: 2px solid #334155; border-radius: 10px; margin-bottom: 15px;
+      width: 100%; height: 100%; display: block;
+    }
+    .aviator-hud {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none; text-align: center; width: 100%;
+    }
+    .flew-away-text {
+      font-size: 1rem; font-weight: 800; letter-spacing: 1px;
+      color: #f8fafc; text-transform: uppercase; margin-bottom: 2px;
+      display: none; text-shadow: 0 2px 8px rgba(0,0,0,0.8);
     }
     .multiplier-display {
-      font-size: 2.5rem; font-weight: 800; margin: 10px 0; color: var(--accent);
+      font-size: 3.2rem; font-weight: 900; color: #ffffff;
+      text-shadow: 0 4px 16px rgba(0,0,0,0.85); margin: 0;
     }
+
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px;
+    }
+    .stat-box { background: #1e293b; padding: 12px 6px; border-radius: 10px; }
+    .stat-value { font-size: 1.15rem; font-weight: bold; color: var(--blue); margin-top: 4px; }
+    
+    .btn {
+      width: 100%; padding: 15px; border: none; border-radius: 12px;
+      font-size: 1.05rem; font-weight: 800; cursor: pointer; margin-top: 6px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .btn-bet {
+      background: linear-gradient(180deg, #22c55e, #16a34a); color: #fff;
+      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+    }
+    .btn-cashout {
+      background: linear-gradient(180deg, #f59e0b, #d97706); color: #fff;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    }
+    .btn-primary { background: var(--blue); color: #0f172a; }
+
+    /* AI Chat Box Styles */
+    .chat-box {
+      background: #090d16; border: 1px solid #263147; border-radius: 10px;
+      height: 160px; overflow-y: auto; padding: 10px; text-align: left;
+      font-size: 0.88rem; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .msg-ai {
+      background: #1e293b; color: #f8fafc; padding: 8px 12px;
+      border-radius: 10px 10px 10px 2px; align-self: flex-start; max-width: 85%;
+    }
+    .msg-user {
+      background: var(--accent); color: #fff; padding: 8px 12px; font-weight: 600;
+      border-radius: 10px 10px 2px 10px; align-self: flex-end; max-width: 85%;
+    }
+    .chat-input-row { display: flex; gap: 8px; }
+    .chat-input {
+      flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155;
+      background: #090d16; color: var(--text); font-size: 0.9rem; outline: none;
+    }
+    .chat-send-btn {
+      padding: 10px 16px; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+    }
+
     .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 16px 0; }
     .tile {
-      background: #334155; padding: 18px 0; border-radius: 8px;
-      font-size: 1.3rem; cursor: pointer; user-select: none;
+      background: #1e293b; padding: 18px 0; border-radius: 8px;
+      font-size: 1.3rem; cursor: pointer; user-select: none; border: 1px solid #334155;
     }
-    .history-log { text-align: left; font-size: 0.9rem; margin-top: 10px; }
-    .history-item { padding: 6px 0; border-bottom: 1px solid #334155; }
+    .history-log { text-align: left; font-size: 0.85rem; margin-top: 10px; max-height: 90px; overflow-y: auto; }
+    .history-item { padding: 5px 0; border-bottom: 1px solid #1e293b; }
   </style>
 </head>
 <body>
 
+  <!-- TOP WALLET BAR -->
+  <div class="wallet-banner">
+    <span>✈️ <b>Arcade Study Lab</b></span>
+    <span class="wallet-amount" id="topWalletBalance">1000 PTS</span>
+  </div>
+
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-    <button class="tab-btn" onclick="switchTab('aviator')">✈️ Aviator</button>
+    <button class="tab-btn active" onclick="switchTab('aviator')">✈️ Aviator</button>
     <button class="tab-btn" onclick="switchTab('chicken')">🐔 Chicken</button>
+    <button class="tab-btn" onclick="switchTab('dashboard')">📊 Dashboard</button>
   </div>
 
-  <!-- DASHBOARD VIEW -->
-  <div class="card" id="dashboardSection">
-    <h3>User Dashboard</h3>
-    <div class="stats-grid">
-      <div class="stat-box">
-        <div style="font-size:0.75rem">Wallet Balance</div>
-        <div class="stat-value" id="walletBalance">0 PTS</div>
-      </div>
-      <div class="stat-box">
-        <div style="font-size:0.75rem">Session Profit</div>
-        <div class="stat-value" id="sessionProfit">0 PTS</div>
-      </div>
-      <div class="stat-box">
-        <div style="font-size:0.75rem">Games Played</div>
-        <div class="stat-value" id="sessionGames">0</div>
-      </div>
+  <!-- AVIATOR VIEW (Default Active Tab) -->
+  <div class="card" id="aviatorSection">
+    <!-- Recent Multipliers Bar -->
+    <div class="crash-pills" id="crashPills">
+      <span class="pill pill-low">1.24x</span>
+      <span class="pill pill-mid">3.85x</span>
+      <span class="pill pill-low">1.08x</span>
+      <span class="pill pill-high">14.20x</span>
+      <span class="pill pill-mid">2.45x</span>
     </div>
-    <div class="history-log" id="historyLog">
-      <i>Session history will appear here...</i>
-    </div>
-  </div>
 
-  <!-- AVIATOR VIEW -->
-  <div class="card" id="aviatorSection" style="display: none;">
-    <h3>✈️ Aviator Flight</h3>
-    <canvas id="aviatorCanvas" width="400" height="200"></canvas>
-    <div class="multiplier-display" id="aviatorMult">1.00x</div>
-    <button class="btn btn-primary" id="aviatorBtn" onclick="toggleAviator()">Wager 100 PTS</button>
+    <!-- Classic Aviator Stage -->
+    <div class="aviator-stage">
+      <canvas id="aviatorCanvas" width="420" height="230"></canvas>
+      <div class="aviator-hud">
+        <div class="flew-away-text" id="flewAwayText">FLEW AWAY!</div>
+        <div class="multiplier-display" id="aviatorMult">1.00x</div>
+      </div>
+    </div>
+
+    <button class="btn btn-bet" id="aviatorBtn" onclick="toggleAviator()">BET 100 PTS</button>
   </div>
 
   <!-- CHICKEN VIEW -->
   <div class="card" id="chickenSection" style="display: none;">
-    <h3>🐔 Chicken Grid</h3>
-    <div class="multiplier-display" id="chickenMult">1.00x</div>
+    <h3>🐔 Chicken Step Grid</h3>
+    <div class="multiplier-display" id="chickenMult" style="font-size:2.4rem; margin:10px 0;">1.00x</div>
     <div class="grid" id="chickenGrid"></div>
-    <button class="btn btn-primary" id="chickenBtn" onclick="startChicken()">Start (100 PTS)</button>
-    <button class="btn btn-success" id="chickenCashoutBtn" onclick="cashoutChicken()" style="display:none;">Cash Out</button>
+    <button class="btn btn-bet" id="chickenBtn" onclick="startChicken()">BET 100 PTS</button>
+    <button class="btn btn-cashout" id="chickenCashoutBtn" onclick="cashoutChicken()" style="display:none;">CASH OUT</button>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="dashboardSection" style="display: none;">
+    <div class="card">
+      <h3 style="margin-top:0;">📊 Live Session Stats</h3>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div style="font-size:0.75rem">Wallet</div>
+          <div class="stat-value" id="walletBalance">1000 PTS</div>
+        </div>
+        <div class="stat-box">
+          <div style="font-size:0.75rem">Profit</div>
+          <div class="stat-value" id="sessionProfit">0 PTS</div>
+        </div>
+        <div class="stat-box">
+          <div style="font-size:0.75rem">Rounds</div>
+          <div class="stat-value" id="sessionGames">0</div>
+        </div>
+      </div>
+      <div class="history-log" id="historyLog">
+        <i>Play Aviator or Chicken to log rounds...</i>
+      </div>
+      <button class="btn btn-primary" style="margin-top:12px; padding:10px; font-size:0.9rem;" onclick="syncAndClose()">
+        💾 Save Session Balance to Bot Chat
+      </button>
+    </div>
+
+    <!-- IN-APP GEMINI AI AGENT CHAT BOX -->
+    <div class="card">
+      <h3 style="margin-top:0;">🤖 Gemini Lab Coach</h3>
+      <div class="chat-box" id="chatBox">
+        <div class="msg-ai">👋 Welcome! Ask me to explain Aviator crash probabilities or type "bonus" if you need +500 virtual study PTS!</div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" class="chat-input" placeholder="Ask the AI Agent..." onkeypress="if(event.key==='Enter') sendChatMessage()" />
+        <button class="chat-send-btn" onclick="sendChatMessage()">Send</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -105,122 +215,361 @@
     tg.ready();
     tg.expand();
 
-    // 1. Read the token balance sent from bot.py in the URL (?tokens=1000)
+    // 1. Read Wallet & Key from URL
     const urlParams = new URLSearchParams(window.location.search);
-    let currentWalletBalance = parseInt(urlParams.get('tokens')) || 1000;
-    document.getElementById('walletBalance').innerText = currentWalletBalance + " PTS";
+    let currentWalletBalance = parseInt(urlParams.get('tokens'));
+    if (isNaN(currentWalletBalance)) currentWalletBalance = 1000;
+    const geminiApiKey = urlParams.get('key') || "";
 
-    // Session Stats
+    function updateWalletUI() {
+      document.getElementById('walletBalance').innerText = currentWalletBalance + " PTS";
+      document.getElementById('topWalletBalance').innerText = currentWalletBalance + " PTS";
+    }
+    updateWalletUI();
+
     let sessionProfit = 0, sessionGames = 0;
     
-    function logHistory(game, amount) {
+    function recordRound(game, amount) {
       sessionGames++;
       sessionProfit += amount;
       currentWalletBalance = Math.max(0, currentWalletBalance + amount);
-      
-      document.getElementById('walletBalance').innerText = currentWalletBalance + " PTS";
+      updateWalletUI();
+
       document.getElementById('sessionProfit').innerText = (sessionProfit >= 0 ? "+" : "") + sessionProfit + " PTS";
       document.getElementById('sessionProfit').style.color = sessionProfit >= 0 ? "var(--success)" : "var(--danger)";
       document.getElementById('sessionGames').innerText = sessionGames;
       
       const log = document.getElementById('historyLog');
-      if (log.innerHTML.includes("history will appear")) log.innerHTML = "";
+      if (log.innerHTML.includes("Play Aviator")) log.innerHTML = "";
       const entry = document.createElement('div');
       entry.className = "history-item";
       entry.innerHTML = `<b>${game}</b>: ${amount >= 0 ? '<span style="color:#22c55e">Won</span>' : '<span style="color:#ef4444">Lost</span>'} ${Math.abs(amount)} PTS`;
       log.prepend(entry);
     }
 
-    function sendResult(game, netChange) {
-      logHistory(game, netChange);
-      tg.sendData(JSON.stringify({ game: game, net_change: netChange }));
+    function addCrashPill(mult) {
+      const container = document.getElementById('crashPills');
+      const pill = document.createElement('span');
+      const cls = mult < 2 ? 'pill-low' : (mult < 10 ? 'pill-mid' : 'pill-high');
+      pill.className = `pill ${cls}`;
+      pill.innerText = `${mult.toFixed(2)}x`;
+      container.prepend(pill);
+    }
+
+    function syncAndClose() {
+      tg.sendData(JSON.stringify({ game: "Mini App Session", net_change: sessionProfit }));
     }
 
     function switchTab(tab) {
-      ['dashboard', 'aviator', 'chicken'].forEach(t => {
+      ['aviator', 'chicken', 'dashboard'].forEach(t => {
         document.getElementById(t + 'Section').style.display = (t === tab) ? 'block' : 'none';
       });
       const btns = document.querySelectorAll('.tab-btn');
-      btns[0].classList.toggle('active', tab === 'dashboard');
-      btns[1].classList.toggle('active', tab === 'aviator');
-      btns[2].classList.toggle('active', tab === 'chicken');
+      btns[0].classList.toggle('active', tab === 'aviator');
+      btns[1].classList.toggle('active', tab === 'chicken');
+      btns[2].classList.toggle('active', tab === 'dashboard');
     }
 
-    // --- AVIATOR ANIMATION LOGIC ---
+    // --- 2. CLASSIC AVIATOR GRAPHICS ENGINE ---
     const canvas = document.getElementById('aviatorCanvas');
     const ctx = canvas.getContext('2d');
-    let flying = false, currentMult = 1.00, crashPoint = 1.00, flightTime = 0;
-    let animId = null;
+    let flying = false, crashed = false, cashedOut = false;
+    let currentMult = 1.00, crashPoint = 1.00, flightTime = 0;
+    let bgAngle = 0, flyAwayOffset = 0, animId = null;
 
-    function drawFlight() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const x = Math.min(flightTime * 2, canvas.width - 40);
-      const y = Math.max(canvas.height - (flightTime * 1.5) - 20, 30);
+    // Draw rotating dark sunburst rays from bottom-left
+    function drawSunburst() {
+      const originX = 24;
+      const originY = canvas.height - 24;
+      const numRays = 36;
+      const radius = 550;
 
+      ctx.fillStyle = '#070a12';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.translate(originX, originY);
+      ctx.rotate(bgAngle);
+
+      for (let i = 0; i < numRays; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        const startA = (i * 2 * Math.PI) / numRays;
+        const endA = ((i + 0.5) * 2 * Math.PI) / numRays;
+        ctx.arc(0, 0, radius, startA, endA);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.38)';
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Draw scrolling axis dots
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(0, canvas.height);
-      ctx.quadraticCurveTo(x/2, canvas.height, x, y + 10);
-      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4; ctx.stroke();
+      ctx.moveTo(24, 0);
+      ctx.lineTo(24, canvas.height - 24);
+      ctx.lineTo(canvas.width, canvas.height - 24);
+      ctx.stroke();
 
-      ctx.font = '30px Arial';
-      if (!flying && currentMult >= crashPoint) {
-        ctx.fillText('💥', x - 10, y + 10);
-      } else {
-        ctx.fillText('✈️', x - 10, y + 10);
+      const offset = (flightTime * 3) % 30;
+      ctx.fillStyle = '#475569';
+      for (let x = 40; x < canvas.width; x += 30) {
+        ctx.beginPath();
+        ctx.arc(x - offset, canvas.height - 12, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      for (let y = canvas.height - 40; y > 10; y -= 30) {
+        ctx.beginPath();
+        ctx.arc(12, y + offset, 2, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
-    drawFlight();
+    // Draw custom red stunt propeller airplane
+    function drawRedAirplane(x, y, tiltAngle) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(tiltAngle);
+
+      // Engine flame glow
+      if (flying || crashed) {
+        ctx.beginPath();
+        ctx.moveTo(-22, 0);
+        ctx.lineTo(-34 - (flightTime % 8), -4);
+        ctx.lineTo(-34 - (flightTime % 8), 4);
+        ctx.closePath();
+        ctx.fillStyle = '#fb923c';
+        ctx.fill();
+      }
+
+      // Main red fuselage
+      ctx.fillStyle = '#e11d48';
+      ctx.shadowColor = '#f43f5e';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(22, 0);        // Nose
+      ctx.quadraticCurveTo(10, -8, -18, -5);
+      ctx.lineTo(-24, -14);     // Tail fin top
+      ctx.lineTo(-27, -14);
+      ctx.lineTo(-22, 2);       // Tail bottom
+      ctx.quadraticCurveTo(5, 8, 22, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Cockpit canopy
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.ellipse(2, -4, 7, 3.5, 0, Math.PI, 0);
+      ctx.fill();
+
+      // Side Wing with X insignia
+      ctx.fillStyle = '#be123c';
+      ctx.beginPath();
+      ctx.moveTo(6, 1);
+      ctx.lineTo(-8, 12);
+      ctx.lineTo(-14, 12);
+      ctx.lineTo(-4, 1);
+      ctx.closePath();
+      ctx.fill();
+
+      // Spinning Propeller at nose
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2.5;
+      const propLen = (flightTime % 2 === 0) ? 11 : 5;
+      ctx.beginPath();
+      ctx.moveTo(23, -propLen);
+      ctx.lineTo(23, propLen);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function renderScene() {
+      drawSunburst();
+
+      const startX = 24;
+      const startY = canvas.height - 24;
+
+      // Calculate smooth bobbing position for the plane
+      const progress = Math.min(flightTime / 140, 1);
+      const bobY = flying ? Math.sin(flightTime * 0.12) * 6 : 0;
+      let planeX = startX + progress * (canvas.width - 110);
+      let planeY = startY - Math.pow(progress, 1.35) * (canvas.height - 95) + bobY;
+
+      // Only draw the red curve if the plane hasn't flown away yet
+      if (!crashed) {
+        // 1. Shaded Red Gradient under curve
+        const grad = ctx.createLinearGradient(0, planeY, 0, startY);
+        grad.addColorStop(0, 'rgba(225, 29, 72, 0.55)');
+        grad.addColorStop(1, 'rgba(225, 29, 72, 0.02)');
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.quadraticCurveTo(startX + (planeX - startX) * 0.55, startY, planeX, planeY);
+        ctx.lineTo(planeX, startY);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // 2. Glowing Neon Red Curve Line
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.quadraticCurveTo(startX + (planeX - startX) * 0.55, startY, planeX, planeY);
+        ctx.strokeStyle = '#f43f5e';
+        ctx.lineWidth = 4;
+        ctx.shadowColor = '#f43f5e';
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Draw Plane at tip of curve
+        drawRedAirplane(planeX, planeY, -0.22);
+      } else {
+        // Plane flies away rapidly off the top-right corner!
+        drawRedAirplane(planeX + flyAwayOffset * 1.8, planeY - flyAwayOffset * 1.1, -0.45);
+      }
+    }
+
+    // Initial render
+    renderScene();
 
     function toggleAviator() {
       const btn = document.getElementById("aviatorBtn");
       const display = document.getElementById("aviatorMult");
+      const flewText = document.getElementById("flewAwayText");
 
       if (!flying) {
-        flying = true; flightTime = 0; currentMult = 1.00;
+        if (currentWalletBalance < 100) {
+          alert("Not enough tokens! Switch to Dashboard and type 'bonus' in the AI Coach!");
+          return;
+        }
+        flying = true; crashed = false; cashedOut = false;
+        flightTime = 0; flyAwayOffset = 0; currentMult = 1.00;
+        
+        // 97% RTP Probability Formula
         crashPoint = Math.max(1.00, Math.floor(((1 - 0.03) / (1 - Math.random())) * 100) / 100);
         
-        display.style.color = "var(--accent)";
-        btn.innerText = "Cash Out!"; btn.className = "btn btn-success";
+        flewText.style.display = "none";
+        display.style.color = "#ffffff";
+        btn.innerText = "CASH OUT (100 PTS)";
+        btn.className = "btn btn-cashout";
 
-        function updateFrame() {
+        function step() {
+          if (!flying) return;
           flightTime++;
-          currentMult += 0.01 * currentMult;
-          
+          bgAngle += 0.006;
+          currentMult += 0.008 * currentMult;
+
+          if (!cashedOut) {
+            const liveWin = Math.round(100 * currentMult);
+            btn.innerText = `CASH OUT (${liveWin} PTS)`;
+          }
+
           if (currentMult >= crashPoint) {
             flying = false;
-            display.innerText = `💥 ${crashPoint.toFixed(2)}x`;
-            display.style.color = "var(--danger)";
-            btn.innerText = "Sync Loss (-100 PTS)"; btn.className = "btn btn-danger";
-            btn.onclick = () => { sendResult("Aviator", -100); btn.innerText = "Wager 100 PTS"; btn.className = "btn btn-primary"; btn.onclick = toggleAviator; };
-            drawFlight();
+            crashed = true;
+            flewText.style.display = "block";
+            display.innerText = `${crashPoint.toFixed(2)}x`;
+            display.style.color = "var(--accent)";
+            addCrashPill(crashPoint);
+
+            if (!cashedOut) {
+              recordRound("Aviator", -100);
+            }
+            btn.innerText = "BET 100 PTS";
+            btn.className = "btn btn-bet";
+
+            // Animate the plane flying away off-screen
+            function flyOff() {
+              flyAwayOffset += 9;
+              renderScene();
+              if (flyAwayOffset < 220) requestAnimationFrame(flyOff);
+            }
+            flyOff();
             return;
           }
-          
+
           display.innerText = `${currentMult.toFixed(2)}x`;
-          drawFlight();
-          animId = setTimeout(updateFrame, 50);
+          renderScene();
+          animId = setTimeout(step, 40);
         }
-        updateFrame();
-        
-      } else {
-        clearTimeout(animId); flying = false;
+        step();
+
+      } else if (!cashedOut) {
+        // Player cashed out in time! Plane keeps flying until it crashes so they can see how high it went
+        cashedOut = true;
         const profit = Math.round(100 * currentMult) - 100;
+        recordRound("Aviator", profit);
         display.style.color = "var(--success)";
-        btn.innerText = `Sync Win (+${profit} PTS)`; btn.className = "btn btn-success";
-        btn.onclick = () => { sendResult("Aviator", profit); btn.innerText = "Wager 100 PTS"; btn.className = "btn btn-primary"; btn.onclick = toggleAviator; };
-        drawFlight();
+        btn.innerText = `✅ WON +${profit} PTS (Waiting...)`;
+        btn.className = "btn btn-bet";
       }
     }
 
-    // --- CHICKEN LOGIC ---
+    // --- 3. IN-APP GEMINI AI AGENT ---
+    async function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const chatBox = document.getElementById('chatBox');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const userDiv = document.createElement('div');
+      userDiv.className = 'msg-user';
+      userDiv.innerText = text;
+      chatBox.appendChild(userDiv);
+      input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      if (text.toLowerCase().includes('bonus') || text.toLowerCase().includes('refill')) {
+        recordRound("AI Study Bonus", 500);
+      }
+
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'msg-ai';
+      loadingDiv.innerText = 'Thinking...';
+      chatBox.appendChild(loadingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      if (!geminiApiKey || geminiApiKey.includes("PASTE")) {
+        loadingDiv.innerText = "⚠️ API key missing! Make sure you added &key={GEMINI_API_KEY} in bot.py and ran /start.";
+        return;
+      }
+
+      const systemPrompt = `You are the witty Arcade Lab AI Coach inside a Telegram Mini App probability simulator.
+      Live User Stats: Wallet=${currentWalletBalance} virtual PTS, Session Profit=${sessionProfit} PTS, Games Played=${sessionGames}.
+      Keep replies short (2-3 sentences max). Remind them tokens are 100% virtual for probability study.
+      User says: ${text}`;
+
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiApiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: systemPrompt }] }]
+          })
+        });
+        const data = await res.json();
+        loadingDiv.innerText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "🤖 Check your Gemini API key!";
+      } catch (err) {
+        loadingDiv.innerText = "⚠️ Network error talking to Gemini API.";
+      }
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // --- 4. CHICKEN LOGIC ---
     let chickenMult = 1.00, trapIndex = 0, playingChicken = false;
 
     function startChicken() {
+      if (currentWalletBalance < 100) {
+        alert("Not enough tokens! Switch to Dashboard and ask the AI Coach for a 'bonus'!");
+        return;
+      }
       playingChicken = true; chickenMult = 1.00;
       trapIndex = Math.floor(Math.random() * 5);
       document.getElementById("chickenMult").innerText = "1.00x";
-      document.getElementById("chickenMult").style.color = "var(--accent)";
+      document.getElementById("chickenMult").style.color = "#fff";
       document.getElementById("chickenBtn").style.display = "none";
       document.getElementById("chickenCashoutBtn").style.display = "block";
       
@@ -241,7 +590,9 @@
         playingChicken = false;
         document.getElementById("chickenMult").innerText = "Caught! (-100 PTS)";
         document.getElementById("chickenMult").style.color = "var(--danger)";
-        setTimeout(() => resetChicken(-100), 1000);
+        recordRound("Chicken Grid", -100);
+        document.getElementById("chickenBtn").style.display = "block";
+        document.getElementById("chickenCashoutBtn").style.display = "none";
       } else {
         el.innerText = "🐔"; el.style.background = "var(--success)";
         chickenMult += 0.25;
@@ -253,14 +604,11 @@
       if (!playingChicken || chickenMult <= 1.00) return;
       playingChicken = false;
       const profit = Math.round(100 * chickenMult) - 100;
-      resetChicken(profit);
-    }
-    
-    function resetChicken(netChange) {
-      sendResult("Chicken Grid", netChange);
+      document.getElementById("chickenMult").innerText = `✅ +${profit} PTS`;
+      document.getElementById("chickenMult").style.color = "var(--success)";
+      recordRound("Chicken Grid", profit);
       document.getElementById("chickenBtn").style.display = "block";
       document.getElementById("chickenCashoutBtn").style.display = "none";
-      document.getElementById("chickenGrid").innerHTML = "";
     }
   </script>
 </body>
