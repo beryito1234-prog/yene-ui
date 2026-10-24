@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,10 +25,10 @@
       margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     .stats-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px;
     }
-    .stat-box { background: #334155; padding: 15px; border-radius: 10px; }
-    .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+    .stat-box { background: #334155; padding: 12px 6px; border-radius: 10px; }
+    .stat-value { font-size: 1.2rem; font-weight: bold; color: var(--accent); margin-top: 4px; }
     .btn {
       width: 100%; padding: 14px; border: none; border-radius: 10px;
       font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 8px;
@@ -38,7 +37,6 @@
     .btn-success { background: var(--success); color: #0f172a; }
     .btn-danger { background: var(--danger); color: #fff; }
     
-    /* Canvas styling */
     canvas {
       width: 100%; height: 200px; background: #0f172a;
       border: 2px solid #334155; border-radius: 10px; margin-bottom: 15px;
@@ -46,8 +44,6 @@
     .multiplier-display {
       font-size: 2.5rem; font-weight: 800; margin: 10px 0; color: var(--accent);
     }
-    
-    /* Chicken Grid */
     .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 16px 0; }
     .tile {
       background: #334155; padding: 18px 0; border-radius: 8px;
@@ -70,11 +66,15 @@
     <h3>User Dashboard</h3>
     <div class="stats-grid">
       <div class="stat-box">
-        <div style="font-size:0.8rem">Session Profit</div>
+        <div style="font-size:0.75rem">Wallet Balance</div>
+        <div class="stat-value" id="walletBalance">0 PTS</div>
+      </div>
+      <div class="stat-box">
+        <div style="font-size:0.75rem">Session Profit</div>
         <div class="stat-value" id="sessionProfit">0 PTS</div>
       </div>
       <div class="stat-box">
-        <div style="font-size:0.8rem">Games Played</div>
+        <div style="font-size:0.75rem">Games Played</div>
         <div class="stat-value" id="sessionGames">0</div>
       </div>
     </div>
@@ -102,7 +102,13 @@
 
   <script>
     const tg = window.Telegram.WebApp;
-    tg.ready(); tg.expand();
+    tg.ready();
+    tg.expand();
+
+    // 1. Read the token balance sent from bot.py in the URL (?tokens=1000)
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentWalletBalance = parseInt(urlParams.get('tokens')) || 1000;
+    document.getElementById('walletBalance').innerText = currentWalletBalance + " PTS";
 
     // Session Stats
     let sessionProfit = 0, sessionGames = 0;
@@ -110,6 +116,9 @@
     function logHistory(game, amount) {
       sessionGames++;
       sessionProfit += amount;
+      currentWalletBalance = Math.max(0, currentWalletBalance + amount);
+      
+      document.getElementById('walletBalance').innerText = currentWalletBalance + " PTS";
       document.getElementById('sessionProfit').innerText = (sessionProfit >= 0 ? "+" : "") + sessionProfit + " PTS";
       document.getElementById('sessionProfit').style.color = sessionProfit >= 0 ? "var(--success)" : "var(--danger)";
       document.getElementById('sessionGames').innerText = sessionGames;
@@ -145,18 +154,14 @@
 
     function drawFlight() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Calculate plane position based on time
       const x = Math.min(flightTime * 2, canvas.width - 40);
       const y = Math.max(canvas.height - (flightTime * 1.5) - 20, 30);
 
-      // Draw Curve Path
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
       ctx.quadraticCurveTo(x/2, canvas.height, x, y + 10);
       ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4; ctx.stroke();
 
-      // Draw Plane or Crash
       ctx.font = '30px Arial';
       if (!flying && currentMult >= crashPoint) {
         ctx.fillText('💥', x - 10, y + 10);
@@ -165,7 +170,7 @@
       }
     }
 
-    drawFlight(); // Initial draw
+    drawFlight();
 
     function toggleAviator() {
       const btn = document.getElementById("aviatorBtn");
@@ -173,7 +178,6 @@
 
       if (!flying) {
         flying = true; flightTime = 0; currentMult = 1.00;
-        // 97% RTP Math
         crashPoint = Math.max(1.00, Math.floor(((1 - 0.03) / (1 - Math.random())) * 100) / 100);
         
         display.style.color = "var(--accent)";
@@ -181,7 +185,7 @@
 
         function updateFrame() {
           flightTime++;
-          currentMult += 0.01 * currentMult; // Exponential growth
+          currentMult += 0.01 * currentMult;
           
           if (currentMult >= crashPoint) {
             flying = false;
@@ -190,7 +194,7 @@
             btn.innerText = "Sync Loss (-100 PTS)"; btn.className = "btn btn-danger";
             btn.onclick = () => { sendResult("Aviator", -100); btn.innerText = "Wager 100 PTS"; btn.className = "btn btn-primary"; btn.onclick = toggleAviator; };
             drawFlight();
-            return; // End loop
+            return;
           }
           
           display.innerText = `${currentMult.toFixed(2)}x`;
@@ -200,7 +204,6 @@
         updateFrame();
         
       } else {
-        // Cashed out successfully
         clearTimeout(animId); flying = false;
         const profit = Math.round(100 * currentMult) - 100;
         display.style.color = "var(--success)";
