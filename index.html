@@ -1,13 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Yene Arcade Study Portal</title>
+  <title>Yene Arcade Ultimate Portal</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #070a12;
+      --bg: #060911;
       --surface: #111827;
       --card: #1e293b;
       --accent: #f43f5e;
@@ -25,98 +26,91 @@
       background: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 0 0 86px 0;
+      padding: 0 0 88px 0;
       overflow-x: hidden;
     }
 
     /* ANIMATIONS */
     @keyframes pulseGlow {
       0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), 0 0 40px rgba(244, 63, 94, 0.4); }
-      50% { transform: scale(1.06); box-shadow: 0 0 32px rgba(245, 158, 11, 0.95), 0 0 60px rgba(34, 197, 94, 0.6); }
+      50% { transform: scale(1.05); box-shadow: 0 0 32px rgba(245, 158, 11, 0.95), 0 0 60px rgba(34, 197, 94, 0.6); }
     }
     @keyframes shimmerSweep {
       0% { left: -100%; }
       100% { left: 200%; }
     }
     @keyframes floatBounce {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-8px) rotate(3deg); }
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
     }
-    @keyframes popIn {
-      0% { transform: scale(0.5); opacity: 0; }
-      80% { transform: scale(1.05); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
+    @keyframes floatUpFade {
+      0% { opacity: 1; transform: translate(-50%, 0) scale(0.9); }
+      100% { opacity: 0; transform: translate(-50%, -55px) scale(1.15); }
+    }
+
+    /* FLOATING WIN TOAST & CONFETTI CANVAS */
+    #confettiCanvas {
+      position: fixed; inset: 0; pointer-events: none; z-index: 450;
+      width: 100%; height: 100%;
+    }
+    .win-toast {
+      position: fixed; top: 42%; left: 50%; z-index: 460;
+      pointer-events: none; font-size: 1.8rem; font-weight: 900;
+      color: #fde047; text-shadow: 0 4px 18px rgba(0,0,0,0.9);
+      animation: floatUpFade 1.2s ease-out forwards;
     }
 
     /* FIRST-TIME WELCOME BONUS OVERLAY */
     .welcome-overlay {
       position: fixed; inset: 0; z-index: 500;
-      background: radial-gradient(circle at center, rgba(30, 27, 75, 0.96), rgba(7, 10, 18, 0.98));
+      background: radial-gradient(circle at center, rgba(30, 27, 75, 0.96), rgba(6, 9, 17, 0.98));
       backdrop-filter: blur(12px);
-      display: flex; align-items: center; justify-content: center;
-      padding: 18px;
+      display: flex; align-items: center; justify-content: center; padding: 18px;
     }
     .welcome-card {
       background: linear-gradient(145deg, #1e1b4b, #0f172a);
-      border: 2px solid var(--gold);
-      border-radius: 22px; padding: 24px 18px;
+      border: 2px solid var(--gold); border-radius: 22px; padding: 24px 18px;
       width: 100%; max-width: 360px; text-align: center;
-      box-shadow: 0 15px 45px rgba(0,0,0,0.8), 0 0 35px rgba(245, 158, 11, 0.25);
-      animation: popIn 0.45s ease-out;
-      position: relative; overflow: hidden;
+      box-shadow: 0 15px 45px rgba(0,0,0,0.8);
     }
     .side-note-badge {
-      display: inline-block;
-      background: linear-gradient(90deg, #f43f5e, #f59e0b);
-      color: #fff; font-size: 0.75rem; font-weight: 900;
-      padding: 6px 14px; border-radius: 999px;
-      text-transform: uppercase; letter-spacing: 0.6px;
-      margin-bottom: 12px;
-      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+      display: inline-block; background: linear-gradient(90deg, #f43f5e, #f59e0b);
+      color: #fff; font-size: 0.74rem; font-weight: 900;
+      padding: 6px 14px; border-radius: 999px; text-transform: uppercase;
+      margin-bottom: 10px;
     }
-    .welcome-gift-icon {
-      font-size: 4.2rem; margin: 6px 0;
-      animation: floatBounce 2.2s infinite ease-in-out;
-    }
+    .welcome-gift-icon { font-size: 4rem; margin: 4px 0; animation: floatBounce 2.2s infinite ease-in-out; }
     .welcome-amount {
-      font-size: 2.3rem; font-weight: 900;
+      font-size: 2.2rem; font-weight: 900;
       background: linear-gradient(90deg, #fde047, #f59e0b, #22c55e);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      margin: 6px 0;
+      margin: 4px 0;
     }
     .welcome-note-box {
-      background: rgba(15, 23, 42, 0.75);
-      border-left: 4px solid var(--success);
-      padding: 10px 12px; border-radius: 8px;
-      font-size: 0.82rem; color: #e2e8f0;
+      background: rgba(15, 23, 42, 0.75); border-left: 4px solid var(--success);
+      padding: 10px 12px; border-radius: 8px; font-size: 0.8rem; color: #e2e8f0;
       text-align: left; margin: 12px 0 18px;
     }
     .awesome-claim-btn {
-      position: relative; overflow: hidden;
-      width: 100%; padding: 16px;
+      position: relative; overflow: hidden; width: 100%; padding: 16px;
       background: linear-gradient(90deg, #f59e0b, #ef4444, #22c55e);
-      background-size: 200% auto;
-      color: #fff; border: 2px solid #fef08a;
-      border-radius: 14px; font-size: 1.1rem; font-weight: 900;
-      text-transform: uppercase; letter-spacing: 1px;
-      cursor: pointer;
-      animation: pulseGlow 1.8s infinite;
+      color: #fff; border: 2px solid #fef08a; border-radius: 14px;
+      font-size: 1.05rem; font-weight: 900; text-transform: uppercase;
+      cursor: pointer; animation: pulseGlow 1.8s infinite;
     }
     .awesome-claim-btn::after {
-      content: ""; position: absolute; top: 0; left: -100%;
-      width: 50%; height: 100%;
+      content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-      transform: skewX(-25deg);
-      animation: shimmerSweep 2.2s infinite;
+      transform: skewX(-25deg); animation: shimmerSweep 2.2s infinite;
     }
 
-    /* 1. TOP HEADER BAR */
+    /* 1. TOP HEADER BAR + XP BAR */
     .app-header {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(17, 24, 39, 0.94);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid #1f2937;
-      padding: 10px 12px;
+      background: rgba(17, 24, 39, 0.94); backdrop-filter: blur(10px);
+      border-bottom: 1px solid #1f2937; padding: 9px 12px 6px;
+    }
+    .header-top-row {
       display: flex; justify-content: space-between; align-items: center;
     }
     .brand-logo {
@@ -134,123 +128,118 @@
     .deposit-btn {
       background: linear-gradient(180deg, #22c55e, #16a34a);
       color: #fff; border: none; border-radius: 999px;
-      padding: 6px 11px; font-weight: 800; font-size: 0.78rem;
-      cursor: pointer; box-shadow: 0 2px 10px rgba(34, 197, 94, 0.35);
+      padding: 6px 11px; font-weight: 800; font-size: 0.76rem; cursor: pointer;
     }
     .sound-mini-btn {
       background: #1e293b; border: 1px solid #334155; color: #fff;
-      border-radius: 50%; width: 31px; height: 31px;
+      border-radius: 50%; width: 30px; height: 30px;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 0.82rem;
+      cursor: pointer; font-size: 0.8rem;
     }
     .profile-avatar {
-      width: 33px; height: 33px; border-radius: 50%;
+      width: 32px; height: 32px; border-radius: 50%;
       background: linear-gradient(135deg, #6366f1, #ec4899);
-      border: 2px solid var(--blue);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 0.85rem; cursor: pointer;
-      overflow: hidden; flex-shrink: 0;
+      border: 2px solid var(--blue); display: flex; align-items: center;
+      justify-content: center; font-weight: 800; font-size: 0.84rem;
+      cursor: pointer; overflow: hidden;
     }
     .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .xp-strip {
+      display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.68rem; color: var(--muted);
+    }
+    .xp-track { flex: 1; height: 5px; background: #1e293b; border-radius: 99px; overflow: hidden; }
+    .xp-fill { height: 100%; width: 20%; background: linear-gradient(90deg, #38bdf8, #a855f7); transition: width 0.3s; }
 
     /* 2. UPPER-MIDDLE CATEGORY NAVIGATION */
     .category-bar {
-      display: flex; gap: 8px; overflow-x: auto;
-      padding: 10px 14px; background: #0b101e;
+      display: flex; gap: 7px; overflow-x: auto;
+      padding: 9px 12px; background: #0b101e;
       border-bottom: 1px solid #1e293b; scrollbar-width: none;
     }
     .category-bar::-webkit-scrollbar { display: none; }
     .cat-pill {
-      padding: 7px 14px; border-radius: 999px;
+      padding: 6px 13px; border-radius: 999px;
       background: #161f33; color: var(--muted);
-      border: 1px solid #263147; font-size: 0.8rem;
+      border: 1px solid #263147; font-size: 0.78rem;
       font-weight: 700; white-space: nowrap; cursor: pointer;
     }
     .cat-pill.active {
       background: linear-gradient(90deg, #f43f5e, #e11d48);
       color: #fff; border-color: #fb7185;
-      box-shadow: 0 2px 10px rgba(244, 63, 94, 0.35);
     }
 
-    .container { padding: 12px 14px; }
+    .container { padding: 12px; }
     .view-section { display: none; }
     .view-section.active { display: block; }
 
     /* HERO & TICKER */
     .hero-banner {
-      background: linear-gradient(135deg, #31102f 0%, #0f172a 60%, #1e3a8a 100%);
-      border: 1px solid #f43f5e55; border-radius: 16px;
-      padding: 15px; margin-bottom: 12px; text-align: left;
+      background: linear-gradient(135deg, #3b0764 0%, #0f172a 55%, #1e3a8a 100%);
+      border: 1px solid #a855f755; border-radius: 16px;
+      padding: 14px; margin-bottom: 10px; text-align: left;
+      display: flex; justify-content: space-between; align-items: center;
     }
-    .hero-tag {
-      background: var(--accent); color: #fff; font-size: 0.68rem;
-      font-weight: 800; padding: 3px 8px; border-radius: 99px;
-    }
-    .hero-title { font-size: 1.15rem; font-weight: 900; margin: 7px 0 4px; }
-    .hero-sub { font-size: 0.78rem; color: #cbd5e1; margin-bottom: 10px; }
-    .hero-btn {
-      background: var(--gold); color: #090d16; border: none;
-      padding: 7px 14px; border-radius: 8px; font-weight: 800;
-      font-size: 0.78rem; cursor: pointer;
-    }
+    .hero-tag { background: var(--purple); color: #fff; font-size: 0.65rem; font-weight: 800; padding: 3px 8px; border-radius: 99px; }
+    .hero-title { font-size: 1.1rem; font-weight: 900; margin: 6px 0 3px; }
+    .hero-sub { font-size: 0.75rem; color: #cbd5e1; margin-bottom: 8px; }
+    .hero-btn { background: var(--gold); color: #090d16; border: none; padding: 7px 13px; border-radius: 8px; font-weight: 800; font-size: 0.76rem; cursor: pointer; }
+
     .live-ticker {
       background: #0f172a; border: 1px solid #1e293b;
-      border-radius: 10px; padding: 7px 12px; margin-bottom: 14px;
-      font-size: 0.76rem; display: flex; align-items: center; gap: 8px;
+      border-radius: 10px; padding: 6px 12px; margin-bottom: 12px;
+      font-size: 0.75rem; display: flex; align-items: center; gap: 8px;
       color: #cbd5e1; overflow: hidden; white-space: nowrap;
     }
-    .pulse-dot {
-      width: 8px; height: 8px; background: var(--success);
-      border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px var(--success);
-    }
+    .pulse-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px var(--success); }
 
-    /* LOBBY GAME CARDS GRID (6 GAMES) */
+    /* 8-GAME LOBBY GRID */
     .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .game-card {
       background: var(--surface); border: 1px solid #263147;
-      border-radius: 14px; padding: 13px; text-align: left;
-      cursor: pointer; transition: transform 0.15s;
+      border-radius: 14px; padding: 12px; text-align: left;
+      cursor: pointer; transition: transform 0.14s;
       display: flex; flex-direction: column; justify-content: space-between;
-      min-height: 130px;
+      min-height: 122px;
     }
     .game-card:active { transform: scale(0.96); }
     .game-card.aviator-card { background: linear-gradient(145deg, #3b0a1e, #111827); border-color: #f43f5e66; }
+    .game-card.plinko-card  { background: linear-gradient(145deg, #3b0764, #111827); border-color: #c084fc66; }
     .game-card.chicken-card { background: linear-gradient(145deg, #0c2e1f, #111827); border-color: #22c55e66; }
-    .game-card.keno-card { background: linear-gradient(145deg, #2e1065, #111827); border-color: #a855f766; }
-    .game-card.bingo-card { background: linear-gradient(145deg, #431407, #111827); border-color: #f9731666; }
-    .game-card.mines-card { background: linear-gradient(145deg, #172554, #111827); border-color: #38bdf866; }
-    .game-card.wheel-card { background: linear-gradient(145deg, #3b2307, #111827); border-color: #f59e0b66; }
+    .game-card.limbo-card   { background: linear-gradient(145deg, #082f49, #111827); border-color: #38bdf866; }
+    .game-card.tower-card   { background: linear-gradient(145deg, #451a03, #111827); border-color: #f59e0b66; }
+    .game-card.keno-card    { background: linear-gradient(145deg, #1e1b4b, #111827); border-color: #818cf866; }
+    .game-card.bingo-card   { background: linear-gradient(145deg, #431407, #111827); border-color: #fb923c66; }
+    .game-card.mines-card   { background: linear-gradient(145deg, #064e3b, #111827); border-color: #34d39966; }
 
-    .badge-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.66rem; font-weight: 800; }
+    .badge-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.64rem; font-weight: 800; }
     .tag-badge { padding: 2px 7px; border-radius: 6px; text-transform: uppercase; }
     .tag-hot { background: #f43f5e; color: #fff; }
     .tag-new { background: #38bdf8; color: #090d16; }
     .tag-pop { background: #f59e0b; color: #090d16; }
     .online-count { color: #94a3b8; font-weight: 600; }
-    .game-icon { font-size: 2.1rem; margin: 8px 0 4px; }
-    .game-name { font-size: 0.96rem; font-weight: 800; }
-    .game-rtp { font-size: 0.7rem; color: var(--muted); }
+    .game-icon { font-size: 2rem; margin: 6px 0 3px; }
+    .game-name { font-size: 0.94rem; font-weight: 800; }
+    .game-rtp { font-size: 0.68rem; color: var(--muted); }
 
-    /* COMMON STAGE & BUTTONS */
+    /* STAGE & CONTROLS */
     .card {
-      background: var(--surface); padding: 14px; border-radius: 14px;
-      margin-bottom: 14px; border: 1px solid #1f293d; text-align: center;
+      background: var(--surface); padding: 13px; border-radius: 14px;
+      margin-bottom: 12px; border: 1px solid #1f293d; text-align: center;
     }
     .back-bar {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 10px; gap: 6px; overflow-x: auto;
+      display: flex; align-items: center; margin-bottom: 10px; gap: 5px;
+      overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;
     }
+    .back-bar::-webkit-scrollbar { display: none; }
     .back-btn {
       background: #1e293b; color: #fff; border: 1px solid #334155;
       padding: 6px 10px; border-radius: 8px; font-weight: 700;
-      font-size: 0.78rem; cursor: pointer; white-space: nowrap;
+      font-size: 0.75rem; cursor: pointer; white-space: nowrap;
     }
+    .back-btn.active-tab { border-color: var(--accent); background: #2e1020; }
 
-    .crash-pills {
-      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px;
-      margin-bottom: 8px; scrollbar-width: none;
-    }
-    .pill { padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+    .crash-pills { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: none; }
+    .pill { padding: 3px 9px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
     .pill-low { background: #1e3a8a; color: #60a5fa; border: 1px solid #2563eb; }
     .pill-mid { background: #4c1d95; color: #c084fc; border: 1px solid #7c3aed; }
     .pill-high { background: #831843; color: #f472b6; border: 1px solid #db2777; }
@@ -262,17 +251,15 @@
     }
     canvas { width: 100%; height: 100%; display: block; }
     .aviator-hud {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       pointer-events: none; text-align: center; width: 100%;
     }
     .flew-away-text {
-      font-size: 0.9rem; font-weight: 800; letter-spacing: 1px;
+      font-size: 0.88rem; font-weight: 800; letter-spacing: 1px;
       color: #f8fafc; text-transform: uppercase; display: none;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
     }
     .multiplier-display {
-      font-size: 2.8rem; font-weight: 900; color: #ffffff;
+      font-size: 2.7rem; font-weight: 900; color: #ffffff;
       text-shadow: 0 4px 16px rgba(0,0,0,0.85); margin: 0;
     }
 
@@ -280,133 +267,123 @@
     .chip-btn {
       flex: 1; background: #1e293b; border: 1px solid #334155;
       color: #cbd5e1; padding: 7px 0; border-radius: 8px;
-      font-weight: 700; font-size: 0.78rem; cursor: pointer;
+      font-weight: 700; font-size: 0.76rem; cursor: pointer;
     }
     .chip-btn.active { background: #2e1020; border-color: var(--accent); color: #fff; }
 
     .auto-bar {
       display: flex; align-items: center; justify-content: space-between;
       background: #090d16; border: 1px solid #263147; border-radius: 10px;
-      padding: 8px 12px; margin-bottom: 10px; font-size: 0.82rem;
+      padding: 7px 12px; margin-bottom: 10px; font-size: 0.8rem;
     }
     .auto-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
-    .auto-toggle input { width: 17px; height: 17px; accent-color: var(--accent); }
+    .auto-toggle input { width: 16px; height: 16px; accent-color: var(--accent); }
     .auto-input-wrap {
       display: flex; align-items: center; gap: 4px; background: #1e293b;
       padding: 3px 8px; border-radius: 8px; border: 1px solid #334155;
     }
     .auto-input {
       width: 55px; background: transparent; border: none; color: #fff;
-      font-size: 0.92rem; font-weight: 700; text-align: right; outline: none;
+      font-size: 0.9rem; font-weight: 700; text-align: right; outline: none;
     }
 
     .btn {
-      width: 100%; padding: 14px; border: none; border-radius: 12px;
-      font-size: 0.98rem; font-weight: 800; cursor: pointer;
+      width: 100%; padding: 13px; border: none; border-radius: 12px;
+      font-size: 0.96rem; font-weight: 800; cursor: pointer;
       text-transform: uppercase; letter-spacing: 0.5px;
     }
     .btn-bet { background: linear-gradient(180deg, #22c55e, #16a34a); color: #fff; box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35); }
     .btn-cashout { background: linear-gradient(180deg, #f59e0b, #d97706); color: #fff; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4); }
     .btn-primary { background: var(--blue); color: #090d16; }
+    .btn-purple { background: linear-gradient(180deg, #a855f7, #7e22ce); color: #fff; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4); }
+
+    /* DRAGON TOWER 5x3 */
+    .tower-row {
+      display: grid; grid-template-columns: 52px 1fr 1fr 1fr; gap: 6px;
+      align-items: center; margin-bottom: 6px; padding: 5px;
+      border-radius: 10px; background: #090d16; border: 1px solid #1e293b;
+    }
+    .tower-row.active-floor { border-color: var(--gold); background: rgba(245, 158, 11, 0.1); }
+    .tower-mult-label { font-size: 0.75rem; font-weight: 800; color: var(--gold); }
+    .tower-door {
+      background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+      padding: 10px 0; font-size: 1.15rem; cursor: pointer; user-select: none;
+    }
 
     /* LIVE AI LOBBY FEED */
     .lobby-feed-card {
       background: var(--surface); border: 1px solid #1f293d;
-      border-radius: 14px; padding: 12px; text-align: left; margin-top: 10px;
+      border-radius: 14px; padding: 11px; text-align: left; margin-top: 10px;
     }
     .lobby-feed-header {
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 0.8rem; font-weight: 800; margin-bottom: 8px;
-      padding-bottom: 6px; border-bottom: 1px solid #1e293b;
+      font-size: 0.78rem; font-weight: 800; margin-bottom: 6px;
+      padding-bottom: 5px; border-bottom: 1px solid #1e293b;
     }
     .bot-row {
       display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
-      align-items: center; padding: 6px 8px; border-radius: 8px;
-      font-size: 0.76rem; margin-bottom: 4px; background: #0b101e;
+      align-items: center; padding: 5px 8px; border-radius: 8px;
+      font-size: 0.74rem; margin-bottom: 4px; background: #0b101e;
     }
     .bot-row.won { background: rgba(34, 197, 94, 0.14); border: 1px solid rgba(34, 197, 94, 0.35); }
     .bot-row.crashed { opacity: 0.5; }
-    .bot-user { display: flex; align-items: center; gap: 6px; font-weight: 700; }
-    .bot-mult-badge { padding: 2px 6px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; text-align: center; display: inline-block; }
+    .bot-user { display: flex; align-items: center; gap: 5px; font-weight: 700; }
+    .bot-mult-badge { padding: 2px 6px; border-radius: 6px; font-weight: 800; font-size: 0.68rem; text-align: center; display: inline-block; }
 
-    /* KENO 40 BOARD */
-    .keno-grid {
-      display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; margin: 12px 0;
-    }
+    /* KENO & BINGO & MINES */
+    .keno-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; margin: 10px 0; }
     .keno-cell {
       background: #1e293b; border: 1px solid #334155; color: #e2e8f0;
-      padding: 9px 0; border-radius: 8px; font-weight: 800; font-size: 0.82rem;
-      cursor: pointer; user-select: none; transition: 0.15s;
+      padding: 8px 0; border-radius: 8px; font-weight: 800; font-size: 0.8rem; cursor: pointer;
     }
-    .keno-cell.picked { background: #6d28d9; border-color: #c084fc; color: #fff; transform: scale(1.04); }
-    .keno-cell.drawn { background: #334155; border-color: #64748b; color: #94a3b8; }
-    .keno-cell.hit { background: linear-gradient(135deg, #f59e0b, #22c55e); border-color: #fef08a; color: #090d16; transform: scale(1.08); box-shadow: 0 0 10px #22c55e; }
+    .keno-cell.picked { background: #6d28d9; border-color: #c084fc; color: #fff; }
+    .keno-cell.drawn { background: #334155; color: #94a3b8; }
+    .keno-cell.hit { background: linear-gradient(135deg, #f59e0b, #22c55e); color: #090d16; box-shadow: 0 0 8px #22c55e; }
 
-    /* SPEED BINGO 5x5 BOARD */
-    .bingo-header-row {
-      display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 6px;
-    }
-    .bingo-letter {
-      background: var(--accent); color: #fff; font-weight: 900; padding: 6px 0;
-      border-radius: 8px; font-size: 0.95rem;
-    }
-    .bingo-grid {
-      display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px;
-    }
-    .bingo-cell {
-      background: #1e293b; border: 2px solid #334155; color: #fff;
-      padding: 13px 0; border-radius: 10px; font-weight: 900; font-size: 0.95rem;
-      transition: 0.2s;
-    }
-    .bingo-cell.daubed {
-      background: linear-gradient(135deg, #16a34a, #22c55e);
-      border-color: #bbf7d0; color: #090d16;
-      box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
-      transform: scale(1.03);
-    }
+    .bingo-header-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 6px; }
+    .bingo-letter { background: var(--accent); color: #fff; font-weight: 900; padding: 5px 0; border-radius: 8px; font-size: 0.9rem; }
+    .bingo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; }
+    .bingo-cell { background: #1e293b; border: 2px solid #334155; color: #fff; padding: 11px 0; border-radius: 10px; font-weight: 900; font-size: 0.9rem; }
+    .bingo-cell.daubed { background: linear-gradient(135deg, #16a34a, #22c55e); border-color: #bbf7d0; color: #090d16; }
     .bingo-caller-bar {
       display: flex; align-items: center; justify-content: space-between;
       background: #090d16; border: 1px solid #263147; border-radius: 10px;
       padding: 8px 12px; margin-bottom: 10px;
     }
     .caller-ball {
-      width: 44px; height: 44px; border-radius: 50%;
+      width: 40px; height: 40px; border-radius: 50%;
       background: radial-gradient(circle at 30% 30%, #fde047, #d97706);
-      color: #090d16; font-weight: 900; font-size: 1.05rem;
+      color: #090d16; font-weight: 900; font-size: 1rem;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 14px rgba(245, 158, 11, 0.6);
     }
 
-    /* MINES & WHEEL & CHAT */
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0; }
-    .tile {
-      background: #1e293b; padding: 16px 0; border-radius: 10px;
-      font-size: 1.35rem; cursor: pointer; user-select: none; border: 1px solid #334155;
-    }
-    .wheel-wrapper { position: relative; width: 250px; height: 250px; margin: 12px auto 18px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+    .tile { background: #1e293b; padding: 15px 0; border-radius: 10px; font-size: 1.3rem; cursor: pointer; border: 1px solid #334155; }
+
+    .wheel-wrapper { position: relative; width: 240px; height: 240px; margin: 10px auto 16px; }
     .wheel-pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 1.8rem; z-index: 10; }
     #wheelCanvas {
-      width: 250px; height: 250px; border-radius: 50%; border: 4px solid var(--gold);
-      box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+      width: 240px; height: 240px; border-radius: 50%; border: 4px solid var(--gold);
       transition: transform 3.6s cubic-bezier(0.15, 0.85, 0.25, 1);
     }
-    .ref-box { background: #090d16; border: 1px dashed var(--blue); padding: 12px; border-radius: 10px; margin: 12px 0; font-size: 0.82rem; word-break: break-all; color: var(--blue); }
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0; }
-    .stat-box { background: #1e293b; padding: 12px 6px; border-radius: 10px; }
-    .stat-value { font-size: 1.1rem; font-weight: 800; color: var(--blue); margin-top: 4px; }
+
+    .ref-box { background: #090d16; border: 1px dashed var(--blue); padding: 11px; border-radius: 10px; margin: 10px 0; font-size: 0.8rem; word-break: break-all; color: var(--blue); }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 10px 0; }
+    .stat-box { background: #1e293b; padding: 10px 6px; border-radius: 10px; }
+    .stat-value { font-size: 1.05rem; font-weight: 800; color: var(--blue); margin-top: 3px; }
 
     .chat-box {
       background: #090d16; border: 1px solid #263147; border-radius: 10px;
-      height: 210px; overflow-y: auto; padding: 10px; text-align: left;
-      font-size: 0.85rem; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;
+      height: 200px; overflow-y: auto; padding: 10px; text-align: left;
+      font-size: 0.84rem; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;
     }
-    .msg-ai { background: #1e293b; color: #f8fafc; padding: 9px 12px; border-radius: 10px 10px 10px 2px; align-self: flex-start; max-width: 86%; }
-    .msg-user { background: var(--accent); color: #fff; padding: 9px 12px; font-weight: 600; border-radius: 10px 10px 2px 10px; align-self: flex-end; max-width: 86%; }
-    .quick-chips { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 4px; }
-    .q-chip { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 5px 10px; border-radius: 99px; font-size: 0.74rem; white-space: nowrap; cursor: pointer; }
+    .msg-ai { background: #1e293b; color: #f8fafc; padding: 8px 11px; border-radius: 10px 10px 10px 2px; align-self: flex-start; max-width: 86%; }
+    .msg-user { background: var(--accent); color: #fff; padding: 8px 11px; font-weight: 600; border-radius: 10px 10px 2px 10px; align-self: flex-end; max-width: 86%; }
+    .quick-chips { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 8px; padding-bottom: 4px; }
+    .q-chip { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 5px 10px; border-radius: 99px; font-size: 0.72rem; white-space: nowrap; cursor: pointer; }
     .chat-input-row { display: flex; gap: 8px; }
-    .chat-input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; background: #090d16; color: var(--text); font-size: 0.9rem; outline: none; }
-    .chat-send-btn { padding: 10px 16px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .chat-input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #090d16; color: var(--text); font-size: 0.88rem; outline: none; }
+    .chat-send-btn { padding: 10px 14px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
     /* FIXED BOTTOM NAVIGATION BAR */
     .bottom-nav {
@@ -417,11 +394,11 @@
     }
     .nav-item {
       flex: 1; display: flex; flex-direction: column; align-items: center;
-      gap: 3px; color: var(--muted); font-size: 0.7rem; font-weight: 700;
+      gap: 2px; color: var(--muted); font-size: 0.68rem; font-weight: 700;
       cursor: pointer; background: none; border: none; padding: 4px 0;
     }
     .nav-item.active { color: var(--accent); }
-    .nav-icon { font-size: 1.25rem; }
+    .nav-icon { font-size: 1.2rem; }
 
     /* DEPOSIT VAULT MODAL */
     .modal-overlay {
@@ -438,9 +415,10 @@
 </head>
 <body>
 
-  <!-- ==========================================
-       FIRST-TIME ENTRY WELCOME BONUS OVERLAY
-  =========================================== -->
+  <!-- CONFETTI CELEBRATION OVERLAY -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- FIRST-TIME ENTRY WELCOME BONUS OVERLAY -->
   <div class="welcome-overlay" id="welcomeBonusOverlay">
     <div class="welcome-card">
       <div class="side-note-badge">✨ Special Side Note: First-Entry Reward!</div>
@@ -448,32 +426,39 @@
       <h2 style="margin:4px 0;">Welcome to Yene Lab!</h2>
       <div class="welcome-amount">+1,000 FREE PTS</div>
       <div class="welcome-note-box">
-        📌 <b>Note:</b> You just earned a <b>+1,000 PTS Starter Bonus Reward</b> for entering the simulator! Tap below to claim your tokens and activate full arcade audio & music.
+        📌 <b>Side Note:</b> You just earned a <b>+1,000 PTS Starter Bonus Reward</b>! Tap the animated button below to claim your tokens and unlock full arcade music & sound effects.
       </div>
       <button class="awesome-claim-btn" onclick="claimFirstTimeWelcomeBonus()">
-        🚀 Claim +1,000 PTS & Enter
+        🚀 Claim +1,000 PTS & Play
       </button>
     </div>
   </div>
 
-  <!-- 1. TOP HEADER BAR -->
+  <!-- 1. TOP HEADER BAR + XP LEVEL PROGRESS -->
   <header class="app-header">
-    <div class="brand-logo">⚡ YENE LAB</div>
-    <div class="header-right">
-      <div class="wallet-pill">
-        <span>🪙</span>
-        <span id="topWalletBalance">1000 PTS</span>
+    <div class="header-top-row">
+      <div class="brand-logo">⚡ YENE ARCADE</div>
+      <div class="header-right">
+        <div class="wallet-pill">
+          <span>🪙</span>
+          <span id="topWalletBalance">1000 PTS</span>
+        </div>
+        <button class="deposit-btn" onclick="openDepositModal()">+ Deposit</button>
+        <button class="sound-mini-btn" id="musicToggleBtn" onclick="toggleBgMusic()">🎵</button>
+        <button class="sound-mini-btn" id="soundToggleBtn" onclick="toggleSound()">🔊</button>
+        <div class="profile-avatar" id="headerAvatar" onclick="switchMainView('profile')">👤</div>
       </div>
-      <button class="deposit-btn" onclick="openDepositModal()">+ Deposit</button>
-      <button class="sound-mini-btn" id="musicToggleBtn" onclick="toggleBgMusic()" title="Background Music">🎵</button>
-      <button class="sound-mini-btn" id="soundToggleBtn" onclick="toggleSound()" title="Sound Effects">🔊</button>
-      <div class="profile-avatar" id="headerAvatar" onclick="switchMainView('profile')">👤</div>
+    </div>
+    <div class="xp-strip">
+      <span id="xpLevelLabel">⭐ Lv. 1 Rookie</span>
+      <div class="xp-track"><div class="xp-fill" id="xpBarFill"></div></div>
+      <span id="xpCountLabel">0/100 XP</span>
     </div>
   </header>
 
   <!-- 2. UPPER-MIDDLE LOBBY CATEGORY BAR -->
   <nav class="category-bar" id="categoryBar">
-    <div class="cat-pill active" onclick="filterCategory('all', this)">🏠 Home</div>
+    <div class="cat-pill active" onclick="filterCategory('all', this)">🏠 Home (8)</div>
     <div class="cat-pill" onclick="filterCategory('hot', this)">🔥 Hot</div>
     <div class="cat-pill" onclick="filterCategory('popular', this)">⭐ Popular</div>
     <div class="cat-pill" onclick="filterCategory('new', this)">✨ New</div>
@@ -483,126 +468,109 @@
   <main class="container">
 
     <!-- ==========================================
-         VIEW 1: LOBBY (HOME & CATEGORIES)
+         VIEW 1: LOBBY (8 CLEAN GAMES)
     =========================================== -->
     <section id="view-lobby" class="view-section active">
       <div class="hero-banner">
-        <span class="hero-tag">🎓 Full Audio + 6 Live Simulators</span>
-        <div class="hero-title">Chicken Cross, Bingo & Keno Live!</div>
-        <div class="hero-sub">Experience animated crash curves, hop across fire ovens, or draw live Keno & Bingo balls.</div>
-        <button class="hero-btn" onclick="openGame('chicken')">🐔 Play Chicken Cross</button>
+        <div>
+          <span class="hero-tag">🟣 NEW PHYSICS ENGINE</span>
+          <div class="hero-title">Plinko Pyramid & Limbo!</div>
+          <div class="hero-sub">Drop rapid-fire bouncing balls into 10x buckets or climb Dragon Tower.</div>
+          <button class="hero-btn" onclick="openGame('plinko')">🟣 Drop Plinko Balls</button>
+        </div>
+        <div style="font-size:3rem;">🟣</div>
       </div>
 
       <div class="live-ticker">
         <span class="pulse-dot"></span>
-        <span id="liveTickerText">🔥 <b>Abebe_T</b> just cashed out <b>4.20x (+420 PTS)</b> in Aviator!</span>
+        <span id="liveTickerText">🔥 <b>Abebe_T</b> just hit <b>10.0x (+1,000 PTS)</b> in Plinko Pyramid!</span>
       </div>
 
       <div class="games-grid" id="gamesGrid">
-        <!-- Aviator -->
+        <!-- 1. Aviator Pro -->
         <div class="game-card aviator-card" data-cats="all hot popular crash" onclick="openGame('aviator')">
-          <div class="badge-top">
-            <span class="tag-badge tag-hot">🔥 HOT</span>
-            <span class="online-count">🟢 142 bots</span>
-          </div>
+          <div class="badge-top"><span class="tag-badge tag-hot">🔥 HOT</span><span class="online-count">🟢 164</span></div>
           <div class="game-icon">✈️</div>
-          <div>
-            <div class="game-name">Aviator Pro</div>
-            <div class="game-rtp">Crash Curve • Jet Audio</div>
-          </div>
+          <div><div class="game-name">Aviator Pro</div><div class="game-rtp">Crash Curve • AI Lobby</div></div>
         </div>
 
-        <!-- Chicken Cross (Upgraded Animated Canvas + AI Feed) -->
+        <!-- 2. Plinko Pyramid -->
+        <div class="game-card plinko-card" data-cats="all hot popular new" onclick="openGame('plinko')">
+          <div class="badge-top"><span class="tag-badge tag-new">✨ NEW</span><span class="online-count">🟢 148</span></div>
+          <div class="game-icon">🟣</div>
+          <div><div class="game-name">Plinko Pyramid</div><div class="game-rtp">Bouncing Physics • 10x</div></div>
+        </div>
+
+        <!-- 3. Chicken Cross -->
         <div class="game-card chicken-card" data-cats="all hot popular crash" onclick="openGame('chicken')">
-          <div class="badge-top">
-            <span class="tag-badge tag-hot">🔥 CRASH</span>
-            <span class="online-count">🟢 118 bots</span>
-          </div>
+          <div class="badge-top"><span class="tag-badge tag-hot">🔥 CRASH</span><span class="online-count">🟢 129</span></div>
           <div class="game-icon">🐔</div>
-          <div>
-            <div class="game-name">Chicken Cross</div>
-            <div class="game-rtp">Animated Lanes • AI Lobby</div>
-          </div>
+          <div><div class="game-name">Chicken Cross</div><div class="game-rtp">Oven Hop • AI Runners</div></div>
         </div>
 
-        <!-- Keno 40 -->
-        <div class="game-card keno-card" data-cats="all popular new" onclick="openGame('keno')">
-          <div class="badge-top">
-            <span class="tag-badge tag-new">✨ NEW</span>
-            <span class="online-count">🟢 94 bots</span>
-          </div>
+        <!-- 4. Limbo Rocket -->
+        <div class="game-card limbo-card" data-cats="all new crash" onclick="openGame('limbo')">
+          <div class="badge-top"><span class="tag-badge tag-new">🚀 FAST</span><span class="online-count">🟢 92</span></div>
+          <div class="game-icon">🚀</div>
+          <div><div class="game-name">Limbo Rocket</div><div class="game-rtp">Target Multiplier • 100x</div></div>
+        </div>
+
+        <!-- 5. Dragon Tower -->
+        <div class="game-card tower-card" data-cats="all popular new" onclick="openGame('tower')">
+          <div class="badge-top"><span class="tag-badge tag-pop">⭐ CLIMB</span><span class="online-count">🟢 88</span></div>
+          <div class="game-icon">🗼</div>
+          <div><div class="game-name">Dragon Tower</div><div class="game-rtp">5 Floors • Crystal Eggs</div></div>
+        </div>
+
+        <!-- 6. Super Keno 40 -->
+        <div class="game-card keno-card" data-cats="all popular" onclick="openGame('keno')">
+          <div class="badge-top"><span class="tag-badge tag-pop">🎱 DRAW</span><span class="online-count">🟢 79</span></div>
           <div class="game-icon">🎱</div>
-          <div>
-            <div class="game-name">Super Keno 40</div>
-            <div class="game-rtp">10-Ball Draw • Up to 15x</div>
-          </div>
+          <div><div class="game-name">Super Keno 40</div><div class="game-rtp">10-Ball Draw • 25x Max</div></div>
         </div>
 
-        <!-- Speed Bingo 5x5 -->
-        <div class="game-card bingo-card" data-cats="all popular new hot" onclick="openGame('bingo')">
-          <div class="badge-top">
-            <span class="tag-badge tag-new">✨ NEW</span>
-            <span class="online-count">🟢 76 bots</span>
-          </div>
+        <!-- 7. Speed Bingo -->
+        <div class="game-card bingo-card" data-cats="all popular hot" onclick="openGame('bingo')">
+          <div class="badge-top"><span class="tag-badge tag-hot">🎯 AUTO</span><span class="online-count">🟢 74</span></div>
           <div class="game-icon">🎯</div>
-          <div>
-            <div class="game-name">Speed Bingo</div>
-            <div class="game-rtp">5x5 Auto-Daub • Line Wins</div>
-          </div>
+          <div><div class="game-name">Speed Bingo</div><div class="game-rtp">5x5 Card • Line Prizes</div></div>
         </div>
 
-        <!-- Cyber Mines -->
-        <div class="game-card mines-card" data-cats="all new" onclick="openGame('mines')">
-          <div class="badge-top">
-            <span class="tag-badge tag-pop">⭐ PRO</span>
-            <span class="online-count">🟢 64 bots</span>
-          </div>
+        <!-- 8. Cyber Mines -->
+        <div class="game-card mines-card" data-cats="all popular" onclick="openGame('mines')">
+          <div class="badge-top"><span class="tag-badge tag-pop">💎 GEMS</span><span class="online-count">🟢 67</span></div>
           <div class="game-icon">💎</div>
-          <div>
-            <div class="game-name">Cyber Mines</div>
-            <div class="game-rtp">4x4 Grid • Hidden Gems</div>
-          </div>
-        </div>
-
-        <!-- Spin & Win Wheel -->
-        <div class="game-card wheel-card" data-cats="all popular hot" onclick="switchMainView('spin')">
-          <div class="badge-top">
-            <span class="tag-badge tag-pop">🎁 BONUS</span>
-            <span class="online-count">Free PTS</span>
-          </div>
-          <div class="game-icon">🎡</div>
-          <div>
-            <div class="game-name">Spin & Win</div>
-            <div class="game-rtp">Lucky Study Wheel</div>
-          </div>
+          <div><div class="game-name">Cyber Mines</div><div class="game-rtp">4x4 Grid • Cashout Anytime</div></div>
         </div>
       </div>
     </section>
 
     <!-- ==========================================
-         VIEW 2: ACTIVE GAME STAGE
+         VIEW 2: ACTIVE GAME STAGE (ALL 8 GAMES)
     =========================================== -->
     <section id="view-game" class="view-section">
+      <!-- Quick Switcher Bar -->
       <div class="back-bar">
         <button class="back-btn" onclick="switchMainView('lobby')">← Lobby</button>
-        <button class="back-btn" onclick="openGame('aviator')">✈️ Aviator</button>
-        <button class="back-btn" onclick="openGame('chicken')">🐔 Chicken</button>
-        <button class="back-btn" onclick="openGame('keno')">🎱 Keno</button>
-        <button class="back-btn" onclick="openGame('bingo')">🎯 Bingo</button>
-        <button class="back-btn" onclick="openGame('mines')">💎 Mines</button>
+        <button class="back-btn" onclick="openGame('aviator')">✈️</button>
+        <button class="back-btn" onclick="openGame('plinko')">🟣 Plinko</button>
+        <button class="back-btn" onclick="openGame('chicken')">🐔</button>
+        <button class="back-btn" onclick="openGame('limbo')">🚀 Limbo</button>
+        <button class="back-btn" onclick="openGame('tower')">🗼 Tower</button>
+        <button class="back-btn" onclick="openGame('keno')">🎱</button>
+        <button class="back-btn" onclick="openGame('bingo')">🎯</button>
+        <button class="back-btn" onclick="openGame('mines')">💎</button>
       </div>
 
-      <!-- 1. AVIATOR PRO SUB-GAME -->
-      <div id="game-aviator">
+      <!-- GAME 1: AVIATOR PRO -->
+      <div id="game-aviator" class="sub-game">
         <div class="card" style="padding:12px;">
           <div class="crash-pills" id="crashPills">
             <span class="pill pill-low">1.24x</span>
             <span class="pill pill-mid">3.85x</span>
-            <span class="pill pill-low">1.08x</span>
             <span class="pill pill-high">14.20x</span>
             <span class="pill pill-mid">2.45x</span>
           </div>
-
           <div class="aviator-stage">
             <canvas id="aviatorCanvas" width="420" height="210"></canvas>
             <div class="aviator-hud">
@@ -610,121 +578,140 @@
               <div class="multiplier-display" id="aviatorMult">1.00x</div>
             </div>
           </div>
-
           <div class="bet-controls-row">
             <button class="chip-btn" onclick="setWager(50, this)">50 PTS</button>
             <button class="chip-btn active" onclick="setWager(100, this)">100 PTS</button>
             <button class="chip-btn" onclick="setWager(250, this)">250 PTS</button>
             <button class="chip-btn" onclick="setWager(500, this)">500 PTS</button>
           </div>
-
           <div class="auto-bar">
-            <label class="auto-toggle">
-              <input type="checkbox" id="autoCashoutCheck" />
-              <span>Auto Cash Out</span>
-            </label>
+            <label class="auto-toggle"><input type="checkbox" id="autoCashoutCheck" /><span>Auto Cash Out</span></label>
             <div class="auto-input-wrap">
-              <input type="number" id="autoCashoutInput" class="auto-input" value="2.00" min="1.10" max="100.00" step="0.10" />
+              <input type="number" id="autoCashoutInput" class="auto-input" value="2.00" min="1.10" step="0.10" />
               <span style="color:#94a3b8; font-weight:700;">x</span>
             </div>
           </div>
-
           <button class="btn btn-bet" id="aviatorBtn" onclick="toggleAviator()">BET 100 PTS</button>
         </div>
 
         <div class="lobby-feed-card">
-          <div class="lobby-feed-header">
-            <span>🤖 Live Aviator AI Lobby</span>
-            <span style="color:var(--success);" id="activeBotsCounter">8/8 In Flight</span>
-          </div>
+          <div class="lobby-feed-header"><span>🤖 Live Aviator AI Lobby</span><span style="color:var(--success);" id="activeBotsCounter">6/6 In Flight</span></div>
           <div id="aiLobbyFeedList"></div>
         </div>
       </div>
 
-      <!-- 2. CHICKEN CROSS ROAD (UPGRADED ANIMATED CANVAS + AI FEED) -->
-      <div id="game-chicken" style="display:none;">
+      <!-- GAME 2: PLINKO PYRAMID (BOUNCING BALL PHYSICS) -->
+      <div id="game-plinko" class="sub-game" style="display:none;">
         <div class="card" style="padding:12px;">
-          <div class="crash-pills" id="chickenPills">
-            <span class="pill pill-mid">2.20x</span>
-            <span class="pill pill-low">1.00x</span>
-            <span class="pill pill-high">6.00x</span>
-            <span class="pill pill-mid">3.50x</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <h3 style="margin:0;">🟣 Plinko Ball Pyramid</h3>
+            <span id="plinkoLastWin" style="font-size:0.82rem; font-weight:800; color:var(--gold);">Tap Drop Ball!</span>
           </div>
+          <div class="aviator-stage" style="height:265px;">
+            <canvas id="plinkoCanvas" width="380" height="265"></canvas>
+          </div>
+          <button class="btn btn-purple" onclick="dropPlinkoBall()">🟣 DROP BALL (100 PTS) — RAPID FIRE!</button>
+        </div>
+      </div>
 
+      <!-- GAME 3: CHICKEN CROSS ROAD -->
+      <div id="game-chicken" class="sub-game" style="display:none;">
+        <div class="card" style="padding:12px;">
           <div class="aviator-stage">
             <canvas id="chickenCanvas" width="420" height="210"></canvas>
           </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:0 4px;">
-            <span style="font-size:0.82rem; color:var(--muted);">Current Multiplier:</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-size:0.82rem; color:var(--muted);">Lane Multiplier:</span>
             <span id="chickenMult" style="font-size:1.6rem; font-weight:900; color:var(--gold);">1.00x</span>
           </div>
-
           <button class="btn btn-bet" id="chickenStartBtn" onclick="startChickenRoad()">BET 100 PTS (START)</button>
           <div id="chickenActionRow" style="display:none; gap:8px; margin-top:6px;">
             <button class="btn btn-primary" style="flex:1;" onclick="stepChickenForward()">🐔 HOP LANE</button>
-            <button class="btn btn-cashout" style="flex:1;" id="chickenCashoutBtn" onclick="cashoutChickenRoad()">CASH OUT</button>
+            <button class="btn btn-cashout" style="flex:1;" onclick="cashoutChickenRoad()">CASH OUT</button>
           </div>
         </div>
-
         <div class="lobby-feed-card">
-          <div class="lobby-feed-header">
-            <span>🐔 Live Chicken Cross AI Lobby</span>
-            <span style="color:var(--gold);" id="chickenBotsStatus">6 AI Runners</span>
-          </div>
+          <div class="lobby-feed-header"><span>🐔 Live Chicken Cross AI Lobby</span><span style="color:var(--gold);">6 AI Runners</span></div>
           <div id="chickenLobbyFeedList"></div>
         </div>
       </div>
 
-      <!-- 3. SUPER KENO 40 SUB-GAME -->
-      <div id="game-keno" style="display:none;">
+      <!-- GAME 4: LIMBO ROCKET -->
+      <div id="game-limbo" class="sub-game" style="display:none;">
+        <div class="card">
+          <h3 style="margin:0 0 4px;">🚀 Limbo Target Rocket</h3>
+          <p style="font-size:0.76rem; color:var(--muted); margin:0 0 12px;">If the rocket blasts higher than your target multiplier, you win instantly!</p>
+          <div style="background:#070a12; border:2px solid #263147; border-radius:14px; padding:24px 10px; margin-bottom:12px;">
+            <div style="font-size:2.4rem;" id="limboRocketEmoji">🚀</div>
+            <div class="multiplier-display" id="limboResultMult">1.00x</div>
+          </div>
+          <div class="auto-bar">
+            <span style="font-weight:700;">🎯 Target Multiplier:</span>
+            <div class="auto-input-wrap">
+              <input type="number" id="limboTargetInput" class="auto-input" value="2.00" min="1.10" max="100" step="0.50" />
+              <span style="color:var(--blue); font-weight:800;">x</span>
+            </div>
+          </div>
+          <button class="btn btn-bet" onclick="launchLimboRocket()">🚀 LAUNCH ROCKET (100 PTS)</button>
+        </div>
+      </div>
+
+      <!-- GAME 5: DRAGON TOWER 5x3 -->
+      <div id="game-tower" class="sub-game" style="display:none;">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h3 style="margin:0;">🗼 Dragon Tower</h3>
+            <span id="towerStatusMult" style="font-weight:900; color:var(--gold); font-size:1.2rem;">1.00x</span>
+          </div>
+          <p style="font-size:0.74rem; color:var(--muted); margin:0 0 10px;">2 Crystal Eggs + 1 Skull per floor. Climb from Floor 1 up to Floor 5!</p>
+          <div id="towerGridContainer"></div>
+          <button class="btn btn-bet" id="towerStartBtn" onclick="startDragonTower()">START CLIMB (100 PTS)</button>
+          <button class="btn btn-cashout" id="towerCashoutBtn" onclick="cashoutDragonTower()" style="display:none;">CASH OUT</button>
+        </div>
+      </div>
+
+      <!-- GAME 6: SUPER KENO 40 -->
+      <div id="game-keno" class="sub-game" style="display:none;">
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <h3 style="margin:0;">🎱 Super Keno 40</h3>
             <button class="back-btn" onclick="quickPickKeno()">⚡ Quick Pick 5</button>
           </div>
-          <p style="font-size:0.76rem; color:var(--muted); margin:6px 0;">Pick up to 5 numbers. 10 balls draw with audio! (1 Hit=0.5x, 2=2x, 3=5x, 4=10x, 5=25x)</p>
-          <div id="kenoStatusText" style="font-weight:800; color:var(--gold); min-height:22px;">Select up to 5 numbers</div>
+          <div id="kenoStatusText" style="font-weight:800; color:var(--gold); margin:6px 0;">Select up to 5 numbers</div>
           <div class="keno-grid" id="kenoGrid"></div>
-          <button class="btn btn-bet" id="kenoDrawBtn" onclick="playKenoRound()">DRAW 10 BALLS (100 PTS)</button>
+          <button class="btn btn-bet" onclick="playKenoRound()">DRAW 10 BALLS (100 PTS)</button>
         </div>
       </div>
 
-      <!-- 4. SPEED BINGO 5x5 SUB-GAME -->
-      <div id="game-bingo" style="display:none;">
+      <!-- GAME 7: SPEED BINGO 5x5 -->
+      <div id="game-bingo" class="sub-game" style="display:none;">
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <h3 style="margin:0;">🎯 Speed Bingo 5x5</h3>
             <button class="back-btn" onclick="generateBingoCard()">🔄 New Card</button>
           </div>
-
           <div class="bingo-caller-bar">
             <div style="text-align:left;">
-              <div style="font-size:0.72rem; color:var(--muted);">LIVE CALLER (18 BALLS)</div>
-              <div id="bingoStatusText" style="font-size:0.86rem; font-weight:800; color:var(--success);">Ready to Draw!</div>
+              <div style="font-size:0.7rem; color:var(--muted);">LIVE CALLER (18 BALLS)</div>
+              <div id="bingoStatusText" style="font-size:0.84rem; font-weight:800; color:var(--success);">Ready to Draw!</div>
             </div>
             <div class="caller-ball" id="bingoCallerBall">🎯</div>
           </div>
-
           <div class="bingo-header-row">
-            <div class="bingo-letter">B</div>
-            <div class="bingo-letter" style="background:#f59e0b;">I</div>
-            <div class="bingo-letter" style="background:#22c55e;">N</div>
-            <div class="bingo-letter" style="background:#38bdf8;">G</div>
+            <div class="bingo-letter">B</div><div class="bingo-letter" style="background:#f59e0b;">I</div>
+            <div class="bingo-letter" style="background:#22c55e;">N</div><div class="bingo-letter" style="background:#38bdf8;">G</div>
             <div class="bingo-letter" style="background:#a855f7;">O</div>
           </div>
           <div class="bingo-grid" id="bingoGrid"></div>
-
-          <button class="btn btn-bet" id="bingoPlayBtn" onclick="startBingoDraw()">START BINGO DRAW (100 PTS)</button>
+          <button class="btn btn-bet" onclick="startBingoDraw()">START BINGO DRAW (100 PTS)</button>
         </div>
       </div>
 
-      <!-- 5. CYBER MINES SUB-GAME -->
-      <div id="game-mines" style="display:none;">
+      <!-- GAME 8: CYBER MINES -->
+      <div id="game-mines" class="sub-game" style="display:none;">
         <div class="card">
           <h3 style="margin:0 0 6px;">💎 Cyber Mines 4x4</h3>
-          <p style="font-size:0.78rem; color:var(--muted); margin:0;">13 Cyber Gems (+0.22x each), 3 Hidden Bombs!</p>
-          <div class="multiplier-display" id="minesMult" style="font-size:2.5rem; margin:10px 0;">1.00x</div>
+          <div class="multiplier-display" id="minesMult" style="font-size:2.3rem; margin:8px 0;">1.00x</div>
           <div class="grid-4" id="minesGrid"></div>
           <button class="btn btn-bet" id="minesBtn" onclick="startMines()">BET 100 PTS</button>
           <button class="btn btn-cashout" id="minesCashoutBtn" onclick="cashoutMines()" style="display:none;">CASH OUT</button>
@@ -736,31 +723,24 @@
     <section id="view-spin" class="view-section">
       <div class="card">
         <h3 style="margin-top:0;">🎡 Daily Spin & Win</h3>
-        <p style="font-size:0.82rem; color:var(--muted);">Spin the probability wheel for instant virtual study tokens!</p>
         <div class="wheel-wrapper">
           <div class="wheel-pointer">🔻</div>
-          <canvas id="wheelCanvas" width="250" height="250"></canvas>
+          <canvas id="wheelCanvas" width="240" height="240"></canvas>
         </div>
         <div id="wheelResultText" style="font-weight:800; color:var(--gold); margin-bottom:10px; min-height:22px;"></div>
-        <button class="btn btn-cashout" id="spinBtn" onclick="spinWheel()">SPIN WHEEL (FREE)</button>
+        <button class="btn btn-cashout" onclick="spinWheel()">SPIN WHEEL (FREE)</button>
       </div>
     </section>
 
     <!-- VIEW 4: INVITE & EARN -->
     <section id="view-invite" class="view-section">
       <div class="card">
-        <div style="font-size:2.6rem;">🎁</div>
+        <div style="font-size:2.5rem;">🎁</div>
         <h3 style="margin:6px 0;">Invite Classmates & Earn</h3>
-        <p style="font-size:0.82rem; color:var(--muted);">Earn <b>+250 Virtual PTS</b> for every friend who joins the study simulator!</p>
+        <p style="font-size:0.8rem; color:var(--muted);">Earn <b>+250 Virtual PTS</b> for every friend who joins the study simulator!</p>
         <div class="stats-grid" style="grid-template-columns:1fr 1fr;">
-          <div class="stat-box">
-            <div style="font-size:0.75rem">Friends Invited</div>
-            <div class="stat-value" id="invitedCount">0</div>
-          </div>
-          <div class="stat-box">
-            <div style="font-size:0.75rem">Referral Bonus</div>
-            <div class="stat-value" id="referralEarned" style="color:var(--success);">0 PTS</div>
-          </div>
+          <div class="stat-box"><div style="font-size:0.74rem">Invited</div><div class="stat-value" id="invitedCount">0</div></div>
+          <div class="stat-box"><div style="font-size:0.74rem">Earned</div><div class="stat-value" id="referralEarned" style="color:var(--success);">0 PTS</div></div>
         </div>
         <div class="ref-box" id="refLinkBox">https://t.me/YeneStudyBot?start=ref_study101</div>
         <button class="btn btn-primary" onclick="copyReferralLink()">📋 Copy Invite Link</button>
@@ -771,33 +751,19 @@
     <!-- VIEW 5: PROFILE DASHBOARD -->
     <section id="view-profile" class="view-section">
       <div class="card">
-        <div class="profile-avatar" id="bigProfileAvatar" style="width:68px; height:68px; margin:0 auto 10px; font-size:1.6rem;">👤</div>
+        <div class="profile-avatar" id="bigProfileAvatar" style="width:64px; height:64px; margin:0 auto 8px; font-size:1.5rem;">👤</div>
         <h3 id="profileName" style="margin:0;">Study Pilot</h3>
         <div id="profileRank" style="font-size:0.78rem; color:var(--gold); font-weight:800; margin-top:4px;">🏅 Rank: Bronze Probability Analyst</div>
-
         <div class="stats-grid">
-          <div class="stat-box">
-            <div style="font-size:0.72rem">Wallet</div>
-            <div class="stat-value" id="walletBalance">1000 PTS</div>
-          </div>
-          <div class="stat-box">
-            <div style="font-size:0.72rem">Net Profit</div>
-            <div class="stat-value" id="sessionProfit">0 PTS</div>
-          </div>
-          <div class="stat-box">
-            <div style="font-size:0.72rem">Win Rate</div>
-            <div class="stat-value" id="winRateStat">0%</div>
-          </div>
+          <div class="stat-box"><div style="font-size:0.72rem">Wallet</div><div class="stat-value" id="walletBalance">1000 PTS</div></div>
+          <div class="stat-box"><div style="font-size:0.72rem">Profit</div><div class="stat-value" id="sessionProfit">0 PTS</div></div>
+          <div class="stat-box"><div style="font-size:0.72rem">Win Rate</div><div class="stat-value" id="winRateStat">0%</div></div>
         </div>
-
-        <div style="text-align:left; font-size:0.82rem; font-weight:800; margin-top:12px;">📜 Recent Round Log</div>
-        <div id="historyLog" style="text-align:left; font-size:0.8rem; max-height:130px; overflow-y:auto; margin:8px 0;">
+        <div style="text-align:left; font-size:0.8rem; font-weight:800; margin-top:10px;">📜 Recent Round Log</div>
+        <div id="historyLog" style="text-align:left; font-size:0.78rem; max-height:130px; overflow-y:auto; margin:6px 0;">
           <i>Play any game to log your study rounds...</i>
         </div>
-
-        <button class="btn btn-primary" style="margin-top:10px;" onclick="syncAndClose()">
-          💾 Sync Balance & Save to Telegram Bot
-        </button>
+        <button class="btn btn-primary" style="margin-top:8px;" onclick="syncAndClose()">💾 Sync Balance & Save to Bot</button>
       </div>
     </section>
 
@@ -806,12 +772,12 @@
       <div class="card">
         <h3 style="margin-top:0;">💬 Support & Gemini AI Coach</h3>
         <div class="quick-chips">
-          <span class="q-chip" onclick="quickAsk('How does Chicken Cross probability work?')">🐔 Chicken Math</span>
+          <span class="q-chip" onclick="quickAsk('How does Plinko binomial distribution work?')">🟣 Plinko Math</span>
           <span class="q-chip" onclick="quickAsk('Give me a +500 PTS study bonus')">🎁 +500 Bonus</span>
-          <span class="q-chip" onclick="quickAsk('Explain Keno & Bingo odds')">🎱 Keno Odds</span>
+          <span class="q-chip" onclick="quickAsk('Analyze my session stats')">📊 My Stats</span>
         </div>
         <div class="chat-box" id="chatBox">
-          <div class="msg-ai">👋 Welcome to Yene Lab Support! Ask me about Aviator, Chicken Cross, Keno, or Bingo odds, or type "bonus" for a free virtual token refill!</div>
+          <div class="msg-ai">👋 Welcome to Yene Arcade Support! Ask me about Plinko, Aviator, or Dragon Tower probabilities, or type "bonus" for +500 free PTS!</div>
         </div>
         <div class="chat-input-row">
           <input type="text" id="chatInput" class="chat-input" placeholder="Message Support / AI..." onkeypress="if(event.key==='Enter') sendChatMessage()" />
@@ -826,13 +792,13 @@
   <div class="modal-overlay" id="depositModal">
     <div class="modal-box">
       <h3 style="margin-top:0;">🪙 Virtual Study Vault</h3>
-      <p style="font-size:0.8rem; color:var(--muted);">100% Free Educational Tokens. Choose a pack:</p>
+      <p style="font-size:0.78rem; color:var(--muted);">100% Free Educational Tokens. Choose a refill pack:</p>
       <div class="pack-grid">
         <button class="pack-btn" onclick="claimDepositPack(500)">+500 PTS<br><span style="font-size:0.7rem; color:var(--muted);">Starter Pack</span></button>
         <button class="pack-btn" onclick="claimDepositPack(2000)">+2,000 PTS<br><span style="font-size:0.7rem; color:var(--gold);">Pro Lab Pack</span></button>
       </div>
       <div class="chat-input-row" style="margin:10px 0;">
-        <input type="text" id="promoCodeInput" class="chat-input" placeholder="Promo Code (Try STUDY2026)" />
+        <input type="text" id="promoCodeInput" class="chat-input" placeholder="Promo Code (STUDY2026)" />
         <button class="chat-send-btn" onclick="redeemPromoCode()">Claim</button>
       </div>
       <button class="back-btn" style="width:100%; margin-top:6px;" onclick="closeDepositModal()">Close Window</button>
@@ -841,26 +807,11 @@
 
   <!-- FIXED BOTTOM NAVIGATION -->
   <nav class="bottom-nav">
-    <button class="nav-item active" onclick="switchMainView('lobby')">
-      <span class="nav-icon">🎮</span>
-      <span>Games</span>
-    </button>
-    <button class="nav-item" onclick="switchMainView('spin')">
-      <span class="nav-icon">🎡</span>
-      <span>Spin & Win</span>
-    </button>
-    <button class="nav-item" onclick="switchMainView('invite')">
-      <span class="nav-icon">🎁</span>
-      <span>Invite</span>
-    </button>
-    <button class="nav-item" onclick="switchMainView('profile')">
-      <span class="nav-icon">👤</span>
-      <span>Profile</span>
-    </button>
-    <button class="nav-item" onclick="switchMainView('support')">
-      <span class="nav-icon">💬</span>
-      <span>Support</span>
-    </button>
+    <button class="nav-item active" onclick="switchMainView('lobby')"><span class="nav-icon">🎮</span><span>Games</span></button>
+    <button class="nav-item" onclick="switchMainView('spin')"><span class="nav-icon">🎡</span><span>Spin & Win</span></button>
+    <button class="nav-item" onclick="switchMainView('invite')"><span class="nav-icon">🎁</span><span>Invite</span></button>
+    <button class="nav-item" onclick="switchMainView('profile')"><span class="nav-icon">👤</span><span>Profile</span></button>
+    <button class="nav-item" onclick="switchMainView('support')"><span class="nav-icon">💬</span><span>Support</span></button>
   </nav>
 
   <script>
@@ -869,12 +820,53 @@
     tg.expand();
 
     // ==========================================
-    // 1. FULL SYNTHESIZED AUDIO & BGM ENGINE
+    // 1. CONFETTI CELEBRATION & FLOATING TOAST
     // ==========================================
-    let audioCtx = null;
-    let soundEnabled = true;
-    let bgMusicEnabled = false;
-    let bgMusicInterval = null;
+    const confCanvas = document.getElementById('confettiCanvas');
+    const confCtx = confCanvas.getContext('2d');
+    let confettiParticles = [];
+
+    function triggerWinCelebration(text) {
+      // Floating +PTS toast
+      const toast = document.createElement('div');
+      toast.className = 'win-toast';
+      toast.innerText = text;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 1200);
+
+      // Spawn confetti particles
+      confCanvas.width = window.innerWidth;
+      confCanvas.height = window.innerHeight;
+      const colors = ['#f43f5e', '#22c55e', '#fde047', '#38bdf8', '#a855f7'];
+      for (let i = 0; i < 38; i++) {
+        confettiParticles.push({
+          x: confCanvas.width / 2,
+          y: confCanvas.height / 2,
+          vx: (Math.random() - 0.5) * 12,
+          vy: (Math.random() - 0.8) * 12,
+          size: 5 + Math.random() * 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          life: 55
+        });
+      }
+      if (confettiParticles.length <= 38) requestAnimationFrame(stepConfetti);
+    }
+
+    function stepConfetti() {
+      confCtx.clearRect(0, 0, confCanvas.width, confCanvas.height);
+      confettiParticles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.vy += 0.35; p.life--;
+        confCtx.fillStyle = p.color;
+        confCtx.fillRect(p.x, p.y, p.size, p.size);
+      });
+      confettiParticles = confettiParticles.filter(p => p.life > 0);
+      if (confettiParticles.length > 0) requestAnimationFrame(stepConfetti);
+    }
+
+    // ==========================================
+    // 2. AUDIO & BACKGROUND MUSIC ENGINE
+    // ==========================================
+    let audioCtx = null, soundEnabled = true, bgMusicEnabled = false, bgMusicInterval = null;
     let engineOsc1 = null, engineOsc2 = null, engineGain = null;
 
     function initAudio() {
@@ -882,15 +874,12 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContext();
       }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
-    // Global button click sound for every button/card tap
     document.addEventListener('pointerdown', (e) => {
       initAudio();
-      if (e.target.closest('button, .game-card, .cat-pill, .keno-cell, .tile')) {
+      if (e.target.closest('button, .game-card, .cat-pill, .keno-cell, .tile, .tower-door')) {
         playClickSound();
       }
     });
@@ -898,18 +887,16 @@
     function playClickSound() {
       if (!soundEnabled || !audioCtx) return;
       const now = audioCtx.currentTime;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(620, now);
-      osc.frequency.exponentialRampToValueAtTime(980, now + 0.045);
-      gain.gain.setValueAtTime(0.08, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+      osc.frequency.setValueAtTime(640, now);
+      osc.frequency.exponentialRampToValueAtTime(980, now + 0.04);
+      gain.gain.setValueAtTime(0.07, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
       osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.start(now); osc.stop(now + 0.045);
+      osc.start(now); osc.stop(now + 0.04);
     }
 
-    // Background Synthwave Arcade Loop
     const bgMelody = [220, 261.63, 329.63, 392.00, 329.63, 261.63, 246.94, 293.66];
     let noteIdx = 0;
 
@@ -917,19 +904,16 @@
       if (bgMusicInterval) clearInterval(bgMusicInterval);
       bgMusicEnabled = true;
       document.getElementById('musicToggleBtn').innerText = '🎵';
-      document.getElementById('musicToggleBtn').style.borderColor = '#22c55e';
-
       bgMusicInterval = setInterval(() => {
         if (!bgMusicEnabled || !soundEnabled || !audioCtx) return;
         const now = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(bgMelody[noteIdx % bgMelody.length], now);
-        gain.gain.setValueAtTime(0.035, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        gain.gain.setValueAtTime(0.03, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
         osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(now); osc.stop(now + 0.22);
+        osc.start(now); osc.stop(now + 0.2);
         noteIdx++;
       }, 260);
     }
@@ -937,13 +921,9 @@
     function toggleBgMusic() {
       initAudio();
       if (bgMusicEnabled) {
-        bgMusicEnabled = false;
-        clearInterval(bgMusicInterval);
+        bgMusicEnabled = false; clearInterval(bgMusicInterval);
         document.getElementById('musicToggleBtn').innerText = '🔕';
-        document.getElementById('musicToggleBtn').style.borderColor = '#334155';
-      } else {
-        startBgMusic();
-      }
+      } else { startBgMusic(); }
     }
 
     function toggleSound() {
@@ -953,47 +933,28 @@
       if (!soundEnabled) stopEngineSound();
     }
 
-    // Upgraded Dual-Oscillator Jet Turbine Sound (Audible on all Phone Speakers)
     function startEngineSound() {
       if (!soundEnabled) return;
-      initAudio();
-      stopEngineSound();
+      initAudio(); stopEngineSound();
       const now = audioCtx.currentTime;
-
-      engineOsc1 = audioCtx.createOscillator();
-      engineOsc2 = audioCtx.createOscillator();
-      engineGain = audioCtx.createGain();
-
-      engineOsc1.type = 'sawtooth';
-      engineOsc2.type = 'triangle';
-      engineOsc1.frequency.setValueAtTime(190, now);
-      engineOsc2.frequency.setValueAtTime(380, now);
-      engineGain.gain.setValueAtTime(0.07, now);
-
-      engineOsc1.connect(engineGain);
-      engineOsc2.connect(engineGain);
-      engineGain.connect(audioCtx.destination);
-
-      engineOsc1.start(now);
-      engineOsc2.start(now);
+      engineOsc1 = audioCtx.createOscillator(); engineOsc2 = audioCtx.createOscillator(); engineGain = audioCtx.createGain();
+      engineOsc1.type = 'sawtooth'; engineOsc2.type = 'triangle';
+      engineOsc1.frequency.setValueAtTime(195, now); engineOsc2.frequency.setValueAtTime(390, now);
+      engineGain.gain.setValueAtTime(0.065, now);
+      engineOsc1.connect(engineGain); engineOsc2.connect(engineGain); engineGain.connect(audioCtx.destination);
+      engineOsc1.start(now); engineOsc2.start(now);
     }
 
     function updateEnginePitch(mult) {
       if (!soundEnabled || !engineOsc1 || !audioCtx) return;
-      const baseFreq = Math.min(190 + (mult - 1) * 95, 760);
+      const baseFreq = Math.min(195 + (mult - 1) * 95, 760);
       engineOsc1.frequency.setTargetAtTime(baseFreq, audioCtx.currentTime, 0.04);
       engineOsc2.frequency.setTargetAtTime(baseFreq * 1.5, audioCtx.currentTime, 0.04);
     }
 
     function stopEngineSound() {
-      if (engineOsc1) {
-        try { engineOsc1.stop(); engineOsc1.disconnect(); } catch (e) {}
-        engineOsc1 = null;
-      }
-      if (engineOsc2) {
-        try { engineOsc2.stop(); engineOsc2.disconnect(); } catch (e) {}
-        engineOsc2 = null;
-      }
+      if (engineOsc1) { try { engineOsc1.stop(); engineOsc1.disconnect(); } catch (e) {} engineOsc1 = null; }
+      if (engineOsc2) { try { engineOsc2.stop(); engineOsc2.disconnect(); } catch (e) {} engineOsc2 = null; }
     }
 
     function playCashoutChime() {
@@ -1001,15 +962,13 @@
       initAudio();
       const now = audioCtx.currentTime;
       [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now + idx * 0.06);
-        gain.gain.setValueAtTime(0.14, now + idx * 0.06);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.25);
+        osc.frequency.setValueAtTime(freq, now + idx * 0.055);
+        gain.gain.setValueAtTime(0.13, now + idx * 0.055);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.055 + 0.24);
         osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(now + idx * 0.06);
-        osc.stop(now + idx * 0.06 + 0.25);
+        osc.start(now + idx * 0.055); osc.stop(now + idx * 0.055 + 0.24);
       });
     }
 
@@ -1017,45 +976,41 @@
       if (!soundEnabled) return;
       initAudio();
       const now = audioCtx.currentTime;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(380, now);
-      osc.frequency.exponentialRampToValueAtTime(65, now + 0.42);
-      gain.gain.setValueAtTime(0.16, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+      osc.frequency.setValueAtTime(360, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
       osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.start(now); osc.stop(now + 0.42);
+      osc.start(now); osc.stop(now + 0.4);
     }
 
     function playBallPopSound(pitchBoost = 0) {
       if (!soundEnabled) return;
       initAudio();
       const now = audioCtx.currentTime;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(440 + pitchBoost * 35, now);
-      osc.frequency.exponentialRampToValueAtTime(880 + pitchBoost * 45, now + 0.08);
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      osc.frequency.setValueAtTime(480 + pitchBoost * 35, now);
+      osc.frequency.exponentialRampToValueAtTime(880 + pitchBoost * 45, now + 0.07);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
       osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.start(now); osc.stop(now + 0.09);
+      osc.start(now); osc.stop(now + 0.08);
     }
 
-    // ==========================================
-    // 2. FIRST-TIME WELCOME BONUS CLAIM
-    // ==========================================
     function claimFirstTimeWelcomeBonus() {
       initAudio();
       playCashoutChime();
       startBgMusic();
+      triggerWinCelebration("+1,000 BONUS PTS!");
       recordRound("First-Entry Welcome Reward", 1000);
       document.getElementById('welcomeBonusOverlay').style.display = 'none';
     }
 
     // ==========================================
-    // 3. WALLET & PROFILE SETUP
+    // 3. WALLET, XP BAR & NAVIGATION
     // ==========================================
     const urlParams = new URLSearchParams(window.location.search);
     let currentWalletBalance = parseInt(urlParams.get('tokens'));
@@ -1071,26 +1026,35 @@
         document.getElementById('headerAvatar').innerHTML = `<img src="${tgUser.photo_url}" alt="pic" />`;
         document.getElementById('bigProfileAvatar').innerHTML = `<img src="${tgUser.photo_url}" alt="pic" />`;
       } else if (tgUser.first_name) {
-        const initial = tgUser.first_name.charAt(0).toUpperCase();
-        document.getElementById('headerAvatar').innerText = initial;
-        document.getElementById('bigProfileAvatar').innerText = initial;
+        const init = tgUser.first_name.charAt(0).toUpperCase();
+        document.getElementById('headerAvatar').innerText = init;
+        document.getElementById('bigProfileAvatar').innerText = init;
       }
     }
 
-    let currentWager = 100;
-    let sessionProfit = 0, sessionGames = 0, sessionWins = 0;
+    let currentWager = 100, sessionProfit = 0, sessionGames = 0, sessionWins = 0, userXP = 20;
 
     function updateWalletUI() {
       document.getElementById('walletBalance').innerText = currentWalletBalance + " PTS";
       document.getElementById('topWalletBalance').innerText = currentWalletBalance + " PTS";
       const rate = sessionGames > 0 ? Math.round((sessionWins / sessionGames) * 100) : 0;
       document.getElementById('winRateStat').innerText = rate + "%";
+
+      const lv = Math.floor(userXP / 100) + 1;
+      const remXP = userXP % 100;
+      document.getElementById('xpLevelLabel').innerText = `⭐ Lv. ${lv} Pilot`;
+      document.getElementById('xpBarFill').style.width = `${remXP}%`;
+      document.getElementById('xpCountLabel').innerText = `${remXP}/100 XP`;
     }
     updateWalletUI();
 
     function recordRound(game, amount) {
       sessionGames++;
-      if (amount > 0) sessionWins++;
+      userXP += 15;
+      if (amount > 0) {
+        sessionWins++;
+        if (amount >= 100) triggerWinCelebration(`+${amount} PTS!`);
+      }
       sessionProfit += amount;
       currentWalletBalance = Math.max(0, currentWalletBalance + amount);
       updateWalletUI();
@@ -1101,18 +1065,9 @@
       const log = document.getElementById('historyLog');
       if (log.innerHTML.includes("Play any game")) log.innerHTML = "";
       const entry = document.createElement('div');
-      entry.style.padding = "5px 0";
-      entry.style.borderBottom = "1px solid #1e293b";
+      entry.style.padding = "4px 0"; entry.style.borderBottom = "1px solid #1e293b";
       entry.innerHTML = `<b>${game}</b>: ${amount >= 0 ? '<span style="color:#22c55e">+' + amount + ' PTS</span>' : '<span style="color:#ef4444">' + amount + ' PTS</span>'}`;
       log.prepend(entry);
-    }
-
-    function setWager(amt, btnEl) {
-      if (flying) return;
-      currentWager = amt;
-      document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
-      btnEl.classList.add('active');
-      document.getElementById('aviatorBtn').innerText = `BET ${currentWager} PTS`;
     }
 
     function switchMainView(viewName) {
@@ -1137,15 +1092,289 @@
 
     function openGame(gameType) {
       switchMainView('game');
-      ['aviator', 'chicken', 'keno', 'bingo', 'mines'].forEach(g => {
+      ['aviator', 'plinko', 'chicken', 'limbo', 'tower', 'keno', 'bingo', 'mines'].forEach(g => {
         document.getElementById('game-' + g).style.display = (g === gameType) ? 'block' : 'none';
       });
       if (gameType === 'aviator') renderScene();
+      if (gameType === 'plinko') drawPlinkoBoard();
       if (gameType === 'chicken') drawChickenRoadScene();
     }
 
     // ==========================================
-    // 4. AVIATOR PRO + AI LOBBY
+    // 4. PLINKO PYRAMID (BOUNCING BALL PHYSICS)
+    // ==========================================
+    const pCanvas = document.getElementById('plinkoCanvas');
+    const pCtx = pCanvas.getContext('2d');
+    const plinkoBuckets = [
+      { mult: 10.0, color: '#e11d48' },
+      { mult: 3.0,  color: '#f97316' },
+      { mult: 1.5,  color: '#eab308' },
+      { mult: 0.5,  color: '#3b82f6' },
+      { mult: 1.5,  color: '#eab308' },
+      { mult: 3.0,  color: '#f97316' },
+      { mult: 10.0, color: '#e11d48' }
+    ];
+    let plinkoPins = [];
+    let plinkoBalls = [];
+    let plinkoAnimating = false;
+
+    function buildPlinkoPins() {
+      plinkoPins = [];
+      const rows = 6;
+      const startY = 38;
+      const rowGap = 31;
+      const pinSpacing = 44;
+
+      for (let r = 0; r < rows; r++) {
+        const count = r + 2;
+        const rowWidth = (count - 1) * pinSpacing;
+        const startX = (pCanvas.width - rowWidth) / 2;
+        for (let c = 0; c < count; c++) {
+          plinkoPins.push({
+            x: startX + c * pinSpacing,
+            y: startY + r * rowGap,
+            glow: 0
+          });
+        }
+      }
+    }
+    buildPlinkoPins();
+
+    function drawPlinkoBoard() {
+      pCtx.fillStyle = '#070a12';
+      pCtx.fillRect(0, 0, pCanvas.width, pCanvas.height);
+
+      // Draw Pyramid Pins
+      plinkoPins.forEach(pin => {
+        pCtx.beginPath();
+        pCtx.arc(pin.x, pin.y, pin.glow > 0 ? 6 : 4, 0, Math.PI * 2);
+        pCtx.fillStyle = pin.glow > 0 ? '#fde047' : '#e2e8f0';
+        pCtx.fill();
+        if (pin.glow > 0) pin.glow--;
+      });
+
+      // Draw Bottom Multiplier Buckets
+      const bucketW = (pCanvas.width - 36) / plinkoBuckets.length;
+      const bucketY = pCanvas.height - 32;
+      plinkoBuckets.forEach((b, i) => {
+        const bx = 18 + i * bucketW;
+        pCtx.fillStyle = b.color;
+        pCtx.beginPath();
+        pCtx.roundRect(bx + 2, bucketY, bucketW - 4, 24, 6);
+        pCtx.fill();
+
+        pCtx.fillStyle = '#fff';
+        pCtx.font = 'bold 11px sans-serif';
+        pCtx.textAlign = 'center';
+        pCtx.fillText(`${b.mult}x`, bx + bucketW / 2, bucketY + 16);
+      });
+
+      // Draw Active Bouncing Balls
+      plinkoBalls.forEach(ball => {
+        pCtx.beginPath();
+        pCtx.arc(ball.x, ball.y, 7, 0, Math.PI * 2);
+        pCtx.fillStyle = '#d946ef';
+        pCtx.shadowColor = '#f43f5e';
+        pCtx.shadowBlur = 10;
+        pCtx.fill();
+        pCtx.shadowBlur = 0;
+      });
+      pCtx.textAlign = 'start';
+    }
+    drawPlinkoBoard();
+
+    function dropPlinkoBall() {
+      if (currentWalletBalance < 100) { openDepositModal(); return; }
+      currentWalletBalance -= 100;
+      updateWalletUI();
+
+      plinkoBalls.push({
+        x: pCanvas.width / 2 + (Math.random() - 0.5) * 8,
+        y: 12,
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: 0.5
+      });
+
+      if (!plinkoAnimating) {
+        plinkoAnimating = true;
+        requestAnimationFrame(stepPlinkoPhysics);
+      }
+    }
+
+    function stepPlinkoPhysics() {
+      const bucketY = pCanvas.height - 34;
+      const bucketW = (pCanvas.width - 36) / plinkoBuckets.length;
+
+      for (let i = plinkoBalls.length - 1; i >= 0; i--) {
+        const b = plinkoBalls[i];
+        b.vy += 0.26; // Gravity
+        b.x += b.vx;
+        b.y += b.vy;
+
+        // Check Pin Collisions
+        plinkoPins.forEach(pin => {
+          const dx = b.x - pin.x;
+          const dy = b.y - pin.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 11) {
+            pin.glow = 8;
+            playBallPopSound(Math.floor((b.y / pCanvas.height) * 8));
+            b.y = pin.y - 11;
+            b.vy = -Math.abs(b.vy) * 0.45;
+            const dir = dx === 0 ? (Math.random() > 0.5 ? 1 : -1) : Math.sign(dx);
+            b.vx = dir * (1.5 + Math.random() * 1.1);
+          }
+        });
+
+        // Keep inside walls
+        if (b.x < 24) { b.x = 24; b.vx = Math.abs(b.vx); }
+        if (b.x > pCanvas.width - 24) { b.x = pCanvas.width - 24; b.vx = -Math.abs(b.vx); }
+
+        // Landed in Bucket!
+        if (b.y >= bucketY) {
+          let bIdx = Math.floor((b.x - 18) / bucketW);
+          bIdx = Math.max(0, Math.min(plinkoBuckets.length - 1, bIdx));
+          const bucket = plinkoBuckets[bIdx];
+          const winPts = Math.round(100 * bucket.mult);
+          const net = winPts - 100;
+
+          currentWalletBalance += 100; // restore base before recordRound adjusts net
+          if (bucket.mult >= 1.5) playCashoutChime();
+          else playClickSound();
+
+          recordRound(`Plinko (${bucket.mult}x)`, net);
+          document.getElementById('plinkoLastWin').innerText = `Hit ${bucket.mult}x (${winPts} PTS)!`;
+          plinkoBalls.splice(i, 1);
+        }
+      }
+
+      drawPlinkoBoard();
+      if (plinkoBalls.length > 0) {
+        requestAnimationFrame(stepPlinkoPhysics);
+      } else {
+        plinkoAnimating = false;
+      }
+    }
+
+    // ==========================================
+    // 5. LIMBO ROCKET (INSTANT MULTIPLIER)
+    // ==========================================
+    let limboRolling = false;
+    function launchLimboRocket() {
+      if (limboRolling) return;
+      if (currentWalletBalance < 100) { openDepositModal(); return; }
+      limboRolling = true;
+
+      const target = Math.max(1.10, parseFloat(document.getElementById('limboTargetInput').value) || 2.00);
+      const actualCrash = Math.max(1.00, Math.floor(((1 - 0.03) / (1 - Math.random())) * 100) / 100);
+      const display = document.getElementById('limboResultMult');
+      const emoji = document.getElementById('limboRocketEmoji');
+
+      let ticks = 0;
+      const timer = setInterval(() => {
+        ticks++;
+        playBallPopSound(ticks);
+        display.innerText = (1 + Math.random() * 8).toFixed(2) + "x";
+        display.style.color = "#fff";
+
+        if (ticks >= 10) {
+          clearInterval(timer);
+          limboRolling = false;
+          display.innerText = actualCrash.toFixed(2) + "x";
+
+          if (actualCrash >= target) {
+            playCashoutChime();
+            emoji.innerText = "🚀✨";
+            display.style.color = "var(--success)";
+            const profit = Math.round(100 * target) - 100;
+            recordRound(`Limbo Rocket (${target}x)`, profit);
+          } else {
+            playCrashSound();
+            emoji.innerText = "💥";
+            display.style.color = "var(--danger)";
+            recordRound("Limbo Rocket", -100);
+          }
+        }
+      }, 45);
+    }
+
+    // ==========================================
+    // 6. DRAGON TOWER (5 FLOORS x 3 DOORS)
+    // ==========================================
+    const towerMults = [1.45, 2.10, 3.15, 4.80, 7.50];
+    let towerFloor = 0, towerPlaying = false, towerTraps = [];
+
+    function renderDragonTower() {
+      const container = document.getElementById('towerGridContainer');
+      let html = '';
+      for (let f = 4; f >= 0; f--) {
+        const isCurrent = towerPlaying && f === towerFloor;
+        html += `<div class="tower-row ${isCurrent ? 'active-floor' : ''}">
+          <div class="tower-mult-label">${towerMults[f].toFixed(2)}x</div>
+          <div class="tower-door" id="td-${f}-0" onclick="pickTowerDoor(${f}, 0)">🥚</div>
+          <div class="tower-door" id="td-${f}-1" onclick="pickTowerDoor(${f}, 1)">🥚</div>
+          <div class="tower-door" id="td-${f}-2" onclick="pickTowerDoor(${f}, 2)">🥚</div>
+        </div>`;
+      }
+      container.innerHTML = html;
+    }
+    renderDragonTower();
+
+    function startDragonTower() {
+      if (currentWalletBalance < 100) { openDepositModal(); return; }
+      towerPlaying = true; towerFloor = 0;
+      towerTraps = [0,1,2,3,4].map(() => Math.floor(Math.random() * 3));
+      document.getElementById('towerStatusMult').innerText = "1.00x";
+      document.getElementById('towerStartBtn').style.display = "none";
+      document.getElementById('towerCashoutBtn').style.display = "block";
+      renderDragonTower();
+    }
+
+    function pickTowerDoor(f, doorIdx) {
+      if (!towerPlaying || f !== towerFloor) return;
+      const cell = document.getElementById(`td-${f}-${doorIdx}`);
+
+      if (doorIdx === towerTraps[f]) {
+        playCrashSound();
+        cell.innerText = "💀";
+        cell.style.background = "var(--danger)";
+        towerPlaying = false;
+        document.getElementById('towerStatusMult').innerText = "💀 Skull! (-100 PTS)";
+        recordRound("Dragon Tower", -100);
+        document.getElementById('towerStartBtn').style.display = "block";
+        document.getElementById('towerCashoutBtn').style.display = "none";
+      } else {
+        playCashoutChime();
+        cell.innerText = "🐉";
+        cell.style.background = "var(--success)";
+        const curM = towerMults[towerFloor];
+        document.getElementById('towerStatusMult').innerText = `${curM.toFixed(2)}x`;
+        towerFloor++;
+
+        if (towerFloor >= 5) {
+          cashoutDragonTower();
+        } else {
+          document.querySelectorAll('.tower-row').forEach((r, idx) => {
+            r.classList.toggle('active-floor', (4 - idx) === towerFloor);
+          });
+        }
+      }
+    }
+
+    function cashoutDragonTower() {
+      if (!towerPlaying || towerFloor === 0) return;
+      towerPlaying = false;
+      playCashoutChime();
+      const lockedM = towerMults[towerFloor - 1];
+      const profit = Math.round(100 * lockedM) - 100;
+      document.getElementById('towerStatusMult').innerText = `✅ Won +${profit} PTS!`;
+      recordRound("Dragon Tower", profit);
+      document.getElementById('towerStartBtn').style.display = "block";
+      document.getElementById('towerCashoutBtn').style.display = "none";
+    }
+
+    // ==========================================
+    // 7. AVIATOR PRO + AI LOBBY
     // ==========================================
     const botRoster = [
       { name: "Abebe_T", icon: "🦁" }, { name: "SkyPilot", icon: "🚀" },
@@ -1192,6 +1421,14 @@
     const ctx = canvas.getContext('2d');
     let flying = false, crashed = false, cashedOut = false;
     let currentMult = 1.00, crashPoint = 1.00, flightTime = 0, bgAngle = 0, flyAwayOffset = 0, animId = null;
+
+    function setWager(amt, btnEl) {
+      if (flying) return;
+      currentWager = amt;
+      document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+      document.getElementById('aviatorBtn').innerText = `BET ${currentWager} PTS`;
+    }
 
     function renderScene() {
       const originX = 24, originY = canvas.height - 24;
@@ -1299,320 +1536,171 @@
     }
 
     // ==========================================
-    // 5. ANIMATED CHICKEN CROSS ROAD + AI LOBBY
+    // 8. CHICKEN CROSS ROAD + KENO + BINGO + MINES
     // ==========================================
     const cCanvas = document.getElementById('chickenCanvas');
     const cCtx = cCanvas.getContext('2d');
     const laneMults = [1.25, 1.65, 2.30, 3.60, 6.00];
-    let chickenStep = -1; // -1 = safe sidewalk, 0..4 = 5 oven lanes
-    let chickenTrapLane = -1;
-    let chickenActive = false;
-    let chickenRoasted = false;
+    let chickenStep = -1, chickenTrapLane = -1, chickenActive = false, chickenRoasted = false;
 
     function drawChickenRoadScene() {
-      cCtx.fillStyle = '#090d16';
-      cCtx.fillRect(0, 0, cCanvas.width, cCanvas.height);
-
-      const startPadWidth = 60;
-      const laneW = (cCanvas.width - startPadWidth) / 5;
-
-      // Safe Starting Sidewalk
-      cCtx.fillStyle = '#1e293b';
-      cCtx.fillRect(0, 0, startPadWidth, cCanvas.height);
-      cCtx.fillStyle = '#94a3b8';
-      cCtx.font = 'bold 11px sans-serif';
-      cCtx.fillText('START', 12, cCanvas.height / 2);
-
-      // 5 Multiplier Oven Lanes
+      cCtx.fillStyle = '#090d16'; cCtx.fillRect(0, 0, cCanvas.width, cCanvas.height);
+      const startPadWidth = 60, laneW = (cCanvas.width - startPadWidth) / 5;
+      cCtx.fillStyle = '#1e293b'; cCtx.fillRect(0, 0, startPadWidth, cCanvas.height);
       for (let i = 0; i < 5; i++) {
         const x = startPadWidth + i * laneW;
         cCtx.fillStyle = (i === chickenStep && !chickenRoasted) ? '#064e3b' : '#111827';
         cCtx.fillRect(x, 0, laneW - 2, cCanvas.height);
-
-        // Dashed lane divider
-        cCtx.strokeStyle = '#334155';
-        cCtx.setLineDash([6, 6]);
-        cCtx.beginPath(); cCtx.moveTo(x, 0); cCtx.lineTo(x, cCanvas.height); cCtx.stroke();
-        cCtx.setLineDash([]);
-
-        // Multiplier grate badge
         cCtx.fillStyle = (i <= chickenStep) ? '#22c55e' : '#38bdf8';
         cCtx.font = 'bold 14px sans-serif';
         cCtx.fillText(`${laneMults[i].toFixed(2)}x`, x + 14, 34);
-
-        // Oven grate at bottom
-        cCtx.fillStyle = '#1e293b';
-        cCtx.fillRect(x + 10, cCanvas.height - 32, laneW - 22, 16);
-
-        // Draw fire hazard if roasted on this lane
-        if (chickenRoasted && i === chickenStep) {
-          cCtx.font = '38px sans-serif';
-          cCtx.fillText('🔥', x + 16, cCanvas.height / 2 + 12);
-        } else if (i < chickenStep) {
-          cCtx.font = '22px sans-serif';
-          cCtx.fillText('✅', x + 22, cCanvas.height / 2 + 8);
-        }
+        if (chickenRoasted && i === chickenStep) { cCtx.font = '36px sans-serif'; cCtx.fillText('🔥', x + 16, cCanvas.height / 2 + 12); }
       }
-
-      // Draw Chicken Character
-      const chickX = chickenStep < 0 ? 16 : startPadWidth + chickenStep * laneW + 18;
-      const chickY = cCanvas.height / 2 + 12;
-      cCtx.font = '36px sans-serif';
-      cCtx.fillText(chickenRoasted ? '🍗' : '🐔', chickX, chickY);
+      const chickX = chickenStep < 0 ? 14 : startPadWidth + chickenStep * laneW + 18;
+      cCtx.font = '34px sans-serif';
+      cCtx.fillText(chickenRoasted ? '🍗' : '🐔', chickX, cCanvas.height / 2 + 12);
     }
 
     function updateChickenLobbyFeed(stepIdx, roasted) {
-      const feed = document.getElementById('chickenLobbyFeedList');
-      feed.innerHTML = botRoster.map((b, idx) => {
-        const botTargetLane = (idx % 4) + 1;
-        let statusHtml = `<span style="color:#94a3b8;">Hopping...</span>`;
-        if (roasted && stepIdx <= botTargetLane) {
-          statusHtml = `<span style="color:#ef4444;">🔥 Roasted</span>`;
-        } else if (stepIdx >= botTargetLane) {
-          const m = laneMults[botTargetLane];
-          statusHtml = `<b style="color:#22c55e;">Cashed ${m.toFixed(2)}x (+${Math.round(100*m)})</b>`;
-        }
-        return `<div class="bot-row"><div class="bot-user"><span>${b.icon}</span><span>${b.name}</span></div><div>100 PTS</div><div>Lane ${botTargetLane + 1}</div><div style="text-align:right;">${statusHtml}</div></div>`;
+      document.getElementById('chickenLobbyFeedList').innerHTML = botRoster.map((b, idx) => {
+        const botLane = (idx % 4) + 1;
+        const st = (roasted && stepIdx <= botLane) ? `<span style="color:#ef4444;">🔥 Roasted</span>`
+          : (stepIdx >= botLane ? `<b style="color:#22c55e;">+${Math.round(100 * laneMults[botLane])} PTS</b>` : `Hopping...`);
+        return `<div class="bot-row"><div class="bot-user"><span>${b.icon}</span><span>${b.name}</span></div><div>100 PTS</div><div>Lane ${botLane+1}</div><div style="text-align:right;">${st}</div></div>`;
       }).join("");
     }
-    drawChickenRoadScene();
-    updateChickenLobbyFeed(-1, false);
+    drawChickenRoadScene(); updateChickenLobbyFeed(-1, false);
 
     function startChickenRoad() {
       if (currentWalletBalance < 100) { openDepositModal(); return; }
       chickenActive = true; chickenRoasted = false; chickenStep = -1;
-      // 1 in 5 chance per lane or random trap lane
       chickenTrapLane = Math.floor(Math.random() * 5);
       document.getElementById('chickenMult').innerText = '1.00x';
-      document.getElementById('chickenMult').style.color = 'var(--gold)';
       document.getElementById('chickenStartBtn').style.display = 'none';
       document.getElementById('chickenActionRow').style.display = 'flex';
-      drawChickenRoadScene();
-      updateChickenLobbyFeed(0, false);
+      drawChickenRoadScene(); updateChickenLobbyFeed(0, false);
     }
 
     function stepChickenForward() {
       if (!chickenActive) return;
       chickenStep++;
-
       if (chickenStep === chickenTrapLane) {
-        // Roasted!
-        chickenActive = false; chickenRoasted = true;
-        playCrashSound();
+        chickenActive = false; chickenRoasted = true; playCrashSound();
         document.getElementById('chickenMult').innerText = '🔥 ROASTED (-100 PTS)';
-        document.getElementById('chickenMult').style.color = 'var(--danger)';
         recordRound("Chicken Cross", -100);
         document.getElementById('chickenStartBtn').style.display = 'block';
         document.getElementById('chickenActionRow').style.display = 'none';
-        drawChickenRoadScene();
-        updateChickenLobbyFeed(chickenStep, true);
+        drawChickenRoadScene(); updateChickenLobbyFeed(chickenStep, true);
       } else {
-        // Safe hop!
         playBallPopSound(chickenStep * 2);
-        const curM = laneMults[chickenStep];
-        document.getElementById('chickenMult').innerText = `${curM.toFixed(2)}x`;
-        drawChickenRoadScene();
-        updateChickenLobbyFeed(chickenStep, false);
-
-        if (chickenStep === 4) {
-          cashoutChickenRoad();
-        }
+        document.getElementById('chickenMult').innerText = `${laneMults[chickenStep].toFixed(2)}x`;
+        drawChickenRoadScene(); updateChickenLobbyFeed(chickenStep, false);
+        if (chickenStep === 4) cashoutChickenRoad();
       }
     }
 
     function cashoutChickenRoad() {
       if (!chickenActive || chickenStep < 0) return;
-      chickenActive = false;
-      playCashoutChime();
-      const curM = laneMults[chickenStep];
-      const profit = Math.round(100 * curM) - 100;
-      document.getElementById('chickenMult').innerText = `✅ WON +${profit} PTS (${curM.toFixed(2)}x)`;
-      document.getElementById('chickenMult').style.color = 'var(--success)';
+      chickenActive = false; playCashoutChime();
+      const curM = laneMults[chickenStep], profit = Math.round(100 * curM) - 100;
+      document.getElementById('chickenMult').innerText = `✅ +${profit} PTS`;
       recordRound("Chicken Cross", profit);
       document.getElementById('chickenStartBtn').style.display = 'block';
       document.getElementById('chickenActionRow').style.display = 'none';
     }
 
-    // ==========================================
-    // 6. SUPER KENO 40 (ANIMATED 10-BALL DRAW)
-    // ==========================================
-    let kenoPicks = [];
-    let kenoDrawing = false;
-
+    let kenoPicks = [], kenoDrawing = false;
     function initKenoBoard() {
-      const grid = document.getElementById('kenoGrid');
-      grid.innerHTML = '';
+      const grid = document.getElementById('kenoGrid'); grid.innerHTML = '';
       for (let n = 1; n <= 40; n++) {
         const cell = document.createElement('div');
         cell.className = 'keno-cell' + (kenoPicks.includes(n) ? ' picked' : '');
-        cell.id = 'keno-cell-' + n;
-        cell.innerText = n;
-        cell.onclick = () => toggleKenoNumber(n);
+        cell.id = 'keno-cell-' + n; cell.innerText = n;
+        cell.onclick = () => {
+          if (kenoDrawing) return;
+          if (kenoPicks.includes(n)) kenoPicks = kenoPicks.filter(x => x !== n);
+          else if (kenoPicks.length < 5) kenoPicks.push(n);
+          initKenoBoard();
+        };
         grid.appendChild(cell);
       }
     }
-
-    function toggleKenoNumber(n) {
-      if (kenoDrawing) return;
-      if (kenoPicks.includes(n)) {
-        kenoPicks = kenoPicks.filter(x => x !== n);
-      } else if (kenoPicks.length < 5) {
-        kenoPicks.push(n);
-      }
-      initKenoBoard();
-      document.getElementById('kenoStatusText').innerText = `Selected ${kenoPicks.length}/5 numbers`;
-    }
-
     function quickPickKeno() {
       if (kenoDrawing) return;
       kenoPicks = [];
-      while (kenoPicks.length < 5) {
-        const r = Math.floor(Math.random() * 40) + 1;
-        if (!kenoPicks.includes(r)) kenoPicks.push(r);
-      }
+      while (kenoPicks.length < 5) { const r = Math.floor(Math.random() * 40) + 1; if (!kenoPicks.includes(r)) kenoPicks.push(r); }
       initKenoBoard();
-      document.getElementById('kenoStatusText').innerText = `Quick Picked: ${kenoPicks.join(', ')}`;
     }
     initKenoBoard();
 
     function playKenoRound() {
       if (kenoDrawing) return;
-      if (kenoPicks.length === 0) { quickPickKeno(); }
+      if (kenoPicks.length === 0) quickPickKeno();
       if (currentWalletBalance < 100) { openDepositModal(); return; }
-
-      kenoDrawing = true;
-      initKenoBoard();
-      document.getElementById('kenoStatusText').innerText = "🎱 Drawing 10 Keno Balls...";
-
+      kenoDrawing = true; initKenoBoard();
       const drawn = [];
-      while (drawn.length < 10) {
-        const r = Math.floor(Math.random() * 40) + 1;
-        if (!drawn.includes(r)) drawn.push(r);
-      }
-
+      while (drawn.length < 10) { const r = Math.floor(Math.random() * 40) + 1; if (!drawn.includes(r)) drawn.push(r); }
       let idx = 0, hits = 0;
       const timer = setInterval(() => {
-        const num = drawn[idx];
-        const cell = document.getElementById('keno-cell-' + num);
-        if (kenoPicks.includes(num)) {
-          hits++;
-          cell.className = 'keno-cell hit';
-          playCashoutChime();
-        } else {
-          cell.className = 'keno-cell drawn';
-          playBallPopSound(idx);
-        }
+        const num = drawn[idx], cell = document.getElementById('keno-cell-' + num);
+        if (kenoPicks.includes(num)) { hits++; cell.className = 'keno-cell hit'; playCashoutChime(); }
+        else { cell.className = 'keno-cell drawn'; playBallPopSound(idx); }
         idx++;
-
         if (idx >= 10) {
-          clearInterval(timer);
-          kenoDrawing = false;
-          const multTable = { 0: 0, 1: 0.5, 2: 2.0, 3: 5.0, 4: 10.0, 5: 25.0 };
-          const mult = multTable[hits] || 0;
+          clearInterval(timer); kenoDrawing = false;
+          const mult = ({ 0: 0, 1: 0.5, 2: 2.0, 3: 5.0, 4: 10.0, 5: 25.0 })[hits] || 0;
           const net = Math.round(100 * mult) - 100;
           recordRound("Super Keno", net);
-          document.getElementById('kenoStatusText').innerText = hits >= 2
-            ? `🎉 ${hits} Hits! You won ${mult}x (+${net} PTS)!`
-            : `🎱 ${hits} Hit(s) (${net} PTS). Try again!`;
+          document.getElementById('kenoStatusText').innerText = `${hits} Hits! (${net >= 0 ? '+' + net : net} PTS)`;
         }
-      }, 190);
+      }, 180);
     }
 
-    // ==========================================
-    // 7. SPEED BINGO 5x5 (ANIMATED CALLER)
-    // ==========================================
-    let bingoCard = [];
-    let bingoRunning = false;
-
+    let bingoCard = [], bingoRunning = false;
     function generateBingoCard() {
       if (bingoRunning) return;
-      bingoCard = [];
       const pool = [];
-      while (pool.length < 25) {
-        const n = Math.floor(Math.random() * 50) + 1;
-        if (!pool.includes(n)) pool.push(n);
-      }
+      while (pool.length < 25) { const n = Math.floor(Math.random() * 50) + 1; if (!pool.includes(n)) pool.push(n); }
       bingoCard = pool.map((n, i) => ({ num: i === 12 ? '⭐' : n, daubed: i === 12 }));
-      renderBingoGrid();
-      document.getElementById('bingoStatusText').innerText = "Card Ready! Tap Start Draw";
-      document.getElementById('bingoCallerBall').innerText = "🎯";
-    }
-
-    function renderBingoGrid() {
-      const grid = document.getElementById('bingoGrid');
-      grid.innerHTML = bingoCard.map(c =>
-        `<div class="bingo-cell ${c.daubed ? 'daubed' : ''}">${c.num}</div>`
-      ).join("");
+      document.getElementById('bingoGrid').innerHTML = bingoCard.map(c => `<div class="bingo-cell ${c.daubed ? 'daubed' : ''}">${c.num}</div>`).join("");
     }
     generateBingoCard();
-
-    function countBingoLines() {
-      const lines = [
-        [0,1,2,3,4], [5,6,7,8,9], [10,11,12,13,14], [15,16,17,18,19], [20,21,22,23,24],
-        [0,5,10,15,20], [1,6,11,16,21], [2,7,12,17,22], [3,8,13,18,23], [4,9,14,19,24],
-        [0,6,12,18,24], [4,8,12,16,20]
-      ];
-      return lines.filter(line => line.every(idx => bingoCard[idx].daubed)).length;
-    }
 
     function startBingoDraw() {
       if (bingoRunning) return;
       if (currentWalletBalance < 100) { openDepositModal(); return; }
-      generateBingoCard();
-      bingoRunning = true;
-
-      const calledBalls = [];
-      while (calledBalls.length < 18) {
-        const n = Math.floor(Math.random() * 50) + 1;
-        if (!calledBalls.includes(n)) calledBalls.push(n);
-      }
-
+      generateBingoCard(); bingoRunning = true;
+      const called = [];
+      while (called.length < 18) { const n = Math.floor(Math.random() * 50) + 1; if (!called.includes(n)) called.push(n); }
       let step = 0;
       const timer = setInterval(() => {
-        const ball = calledBalls[step];
+        const ball = called[step];
         document.getElementById('bingoCallerBall').innerText = ball;
-        document.getElementById('bingoStatusText').innerText = `Calling Ball ${step + 1}/18: #${ball}`;
-
         let matched = false;
-        bingoCard.forEach(c => {
-          if (c.num === ball) { c.daubed = true; matched = true; }
-        });
-
+        bingoCard.forEach(c => { if (c.num === ball) { c.daubed = true; matched = true; } });
         if (matched) {
           playCashoutChime();
-          renderBingoGrid();
-        } else {
-          playBallPopSound(step % 6);
-        }
-
+          document.getElementById('bingoGrid').innerHTML = bingoCard.map(c => `<div class="bingo-cell ${c.daubed ? 'daubed' : ''}">${c.num}</div>`).join("");
+        } else { playBallPopSound(step % 6); }
         step++;
         if (step >= 18) {
-          clearInterval(timer);
-          bingoRunning = false;
-          const lines = countBingoLines();
-          const mult = lines === 0 ? 0 : (lines === 1 ? 2.0 : (lines === 2 ? 4.5 : 10.0));
+          clearInterval(timer); bingoRunning = false;
+          const lines = [[0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],[0,6,12,18,24],[4,8,12,16,20]]
+            .filter(l => l.every(i => bingoCard[i].daubed)).length;
+          const mult = lines === 0 ? 0 : (lines === 1 ? 2.0 : 5.0);
           const net = Math.round(100 * mult) - 100;
           recordRound("Speed Bingo", net);
-          document.getElementById('bingoStatusText').innerText = lines > 0
-            ? `🎉 BINGO! ${lines} Line(s) = +${net} PTS!`
-            : `No complete line (-100 PTS). Tap Start to play again!`;
+          document.getElementById('bingoStatusText').innerText = lines > 0 ? `🎉 ${lines} Line(s) = +${net} PTS!` : `No Line (-100 PTS)`;
         }
-      }, 210);
+      }, 200);
     }
 
-    // ==========================================
-    // 8. CYBER MINES & SPIN WHEEL & SUPPORT
-    // ==========================================
     let minesMult = 1.00, mineBombs = [], playingMines = false;
     function startMines() {
       if (currentWalletBalance < 100) { openDepositModal(); return; }
       playingMines = true; minesMult = 1.00; mineBombs = [];
-      while (mineBombs.length < 3) {
-        const r = Math.floor(Math.random() * 16);
-        if (!mineBombs.includes(r)) mineBombs.push(r);
-      }
+      while (mineBombs.length < 3) { const r = Math.floor(Math.random() * 16); if (!mineBombs.includes(r)) mineBombs.push(r); }
       document.getElementById("minesMult").innerText = "1.00x";
-      document.getElementById("minesMult").style.color = "#fff";
       document.getElementById("minesBtn").style.display = "none";
       document.getElementById("minesCashoutBtn").style.display = "block";
       const grid = document.getElementById("minesGrid"); grid.innerHTML = "";
@@ -1622,16 +1710,12 @@
           if (!playingMines || t.innerText !== "🟦") return;
           if (mineBombs.includes(i)) {
             playCrashSound(); t.innerText = "💣"; t.style.background = "var(--danger)";
-            playingMines = false;
-            document.getElementById("minesMult").innerText = "BOOM! (-100 PTS)";
-            document.getElementById("minesMult").style.color = "var(--danger)";
-            recordRound("Cyber Mines", -100);
+            playingMines = false; recordRound("Cyber Mines", -100);
             document.getElementById("minesBtn").style.display = "block";
             document.getElementById("minesCashoutBtn").style.display = "none";
           } else {
             playCashoutChime(); t.innerText = "💎"; t.style.background = "var(--blue)";
-            minesMult += 0.22;
-            document.getElementById("minesMult").innerText = `${minesMult.toFixed(2)}x`;
+            minesMult += 0.25; document.getElementById("minesMult").innerText = `${minesMult.toFixed(2)}x`;
           }
         };
         grid.appendChild(t);
@@ -1641,8 +1725,6 @@
       if (!playingMines || minesMult <= 1.00) return;
       playingMines = false; playCashoutChime();
       const profit = Math.round(100 * minesMult) - 100;
-      document.getElementById("minesMult").innerText = `✅ +${profit} PTS`;
-      document.getElementById("minesMult").style.color = "var(--success)";
       recordRound("Cyber Mines", profit);
       document.getElementById("minesBtn").style.display = "block";
       document.getElementById("minesCashoutBtn").style.display = "none";
@@ -1657,24 +1739,17 @@
       { label: "75 PTS",  val: 75,  color: "#0d9488" }, { label: "300 PTS", val: 300, color: "#4f46e5" }
     ];
     let wheelDeg = 0, spinning = false;
-    function drawWheel() {
-      const arc = (2 * Math.PI) / slices.length;
-      slices.forEach((s, i) => {
-        const angle = i * arc;
-        wCtx.beginPath(); wCtx.moveTo(125, 125); wCtx.arc(125, 125, 125, angle, angle + arc);
-        wCtx.fillStyle = s.color; wCtx.fill();
-        wCtx.save(); wCtx.translate(125, 125); wCtx.rotate(angle + arc / 2);
-        wCtx.fillStyle = "#fff"; wCtx.font = "bold 13px sans-serif"; wCtx.fillText(s.label, 42, 5);
-        wCtx.restore();
-      });
-    }
-    drawWheel();
+    slices.forEach((s, i) => {
+      const arc = (2 * Math.PI) / slices.length, angle = i * arc;
+      wCtx.beginPath(); wCtx.moveTo(120, 120); wCtx.arc(120, 120, 120, angle, angle + arc);
+      wCtx.fillStyle = s.color; wCtx.fill();
+      wCtx.save(); wCtx.translate(120, 120); wCtx.rotate(angle + arc / 2);
+      wCtx.fillStyle = "#fff"; wCtx.font = "bold 12px sans-serif"; wCtx.fillText(s.label, 38, 4); wCtx.restore();
+    });
 
     function spinWheel() {
       if (spinning) return;
-      spinning = true;
-      document.getElementById('wheelResultText').innerText = "Spinning...";
-      wheelDeg += 1440 + Math.floor(Math.random() * 1440);
+      spinning = true; wheelDeg += 1440 + Math.floor(Math.random() * 1440);
       wheelCanvas.style.transform = `rotate(${wheelDeg}deg)`;
       setTimeout(() => {
         spinning = false; playCashoutChime();
@@ -1685,10 +1760,7 @@
     }
 
     let invitedFriends = 0, refEarned = 0;
-    function copyReferralLink() {
-      navigator.clipboard?.writeText(document.getElementById('refLinkBox').innerText);
-      alert("📋 Study Invite Link Copied!");
-    }
+    function copyReferralLink() { navigator.clipboard?.writeText(document.getElementById('refLinkBox').innerText); alert("📋 Invite Link Copied!"); }
     function simulateFriendJoin() {
       invitedFriends++; refEarned += 250; playCashoutChime();
       document.getElementById('invitedCount').innerText = invitedFriends;
@@ -1702,55 +1774,29 @@
     function redeemPromoCode() {
       const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
       if (code === "STUDY2026" || code === "YENE") {
-        playCashoutChime(); recordRound("Promo Code (" + code + ")", 1000);
-        document.getElementById('promoCodeInput').value = ""; closeDepositModal();
+        playCashoutChime(); recordRound("Promo Code (" + code + ")", 1000); closeDepositModal();
       } else { alert("Try promo code: STUDY2026"); }
     }
-
-    function syncAndClose() {
-      tg.sendData(JSON.stringify({ game: "Yene Lab Session", net_change: sessionProfit }));
-    }
+    function syncAndClose() { tg.sendData(JSON.stringify({ game: "Yene Lab Session", net_change: sessionProfit })); }
 
     function quickAsk(q) { document.getElementById('chatInput').value = q; sendChatMessage(); }
     async function sendChatMessage() {
-      const input = document.getElementById('chatInput');
-      const chatBox = document.getElementById('chatBox');
-      const text = input.value.trim();
+      const input = document.getElementById('chatInput'), chatBox = document.getElementById('chatBox'), text = input.value.trim();
       if (!text) return;
-
-      const userDiv = document.createElement('div');
-      userDiv.className = 'msg-user'; userDiv.innerText = text;
+      const userDiv = document.createElement('div'); userDiv.className = 'msg-user'; userDiv.innerText = text;
       chatBox.appendChild(userDiv); input.value = '';
-
-      if (text.toLowerCase().includes('bonus') || text.toLowerCase().includes('refill')) {
-        playCashoutChime(); recordRound("Support Study Bonus", 500);
-      }
-
-      const loadingDiv = document.createElement('div');
-      loadingDiv.className = 'msg-ai'; loadingDiv.innerText = 'Thinking...';
+      if (text.toLowerCase().includes('bonus') || text.toLowerCase().includes('refill')) { playCashoutChime(); recordRound("Support Study Bonus", 500); }
+      const loadingDiv = document.createElement('div'); loadingDiv.className = 'msg-ai'; loadingDiv.innerText = 'Thinking...';
       chatBox.appendChild(loadingDiv); chatBox.scrollTop = chatBox.scrollHeight;
-
-      if (!geminiApiKey || geminiApiKey.includes("PASTE")) {
-        loadingDiv.innerText = "✅ Virtual +500 PTS credited if you asked for a bonus!";
-        return;
-      }
-
-      const systemPrompt = `You are the 24/7 Support & Probability Coach inside the Yene Lab Telegram Mini App.
-      User Stats: Wallet=${currentWalletBalance} virtual PTS, Profit=${sessionProfit} PTS, Rounds=${sessionGames}.
-      Keep replies helpful and concise (2-3 sentences max). Remind users all tokens are 100% virtual for study.
-      User says: ${text}`;
-
+      if (!geminiApiKey || geminiApiKey.includes("PASTE")) { loadingDiv.innerText = "✅ Virtual +500 PTS credited if you asked for a bonus!"; return; }
       try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiApiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: `You are Yene Arcade AI Coach. Wallet=${currentWalletBalance} PTS. Short reply (2 sentences). User: ${text}` }] }] })
         });
         const data = await res.json();
-        loadingDiv.innerText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "🤖 Check your Gemini API key!";
-      } catch (err) {
-        loadingDiv.innerText = "⚠️ Network error talking to Gemini API.";
-      }
+        loadingDiv.innerText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "🤖 Check API key!";
+      } catch (err) { loadingDiv.innerText = "⚠️ Network error talking to Gemini."; }
       chatBox.scrollTop = chatBox.scrollHeight;
     }
   </script>
