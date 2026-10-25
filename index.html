@@ -3,83 +3,247 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Arcade Dashboard Lab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Yene Arcade Study Portal</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #090d16; --card: #141b2d; --accent: #f43f5e;
-      --blue: #38bdf8; --success: #22c55e; --danger: #ef4444; --text: #f8fafc;
+      --bg: #070a12;
+      --surface: #111827;
+      --card: #1e293b;
+      --border: #2dd4bf33;
+      --accent: #f43f5e;
+      --gold: #f59e0b;
+      --blue: #38bdf8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
     }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
-      color: var(--text); margin: 0; padding: 12px; text-align: center;
-    }
-    .wallet-banner {
-      background: linear-gradient(90deg, #1e1b4b, #0f172a);
-      border: 1px solid #334155;
-      padding: 10px 14px; border-radius: 12px; margin-bottom: 12px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .wallet-amount { font-size: 1.25rem; font-weight: 800; color: var(--success); }
-    .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-    .tab-btn {
-      flex: 1; padding: 10px; background: var(--card); color: var(--text);
-      border: 1px solid #263147; border-radius: 8px; cursor: pointer; font-weight: 600;
-    }
-    .tab-btn.active { border-color: var(--accent); background: #2e1020; color: #fff; }
-    .card {
-      background: var(--card); padding: 16px; border-radius: 14px;
-      margin-bottom: 14px; box-shadow: 0 6px 16px rgba(0,0,0,0.45);
-      border: 1px solid #1f293d;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0 0 82px 0;
+      overflow-x: hidden;
     }
 
-    /* Recent Crash History Pills */
+    /* 1. TOP HEADER BAR (Upper Right Wallet + Deposit + Profile Pic) */
+    .app-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(17, 24, 39, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #1f2937;
+      padding: 10px 14px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .brand-logo {
+      display: flex; align-items: center; gap: 6px;
+      font-weight: 900; font-size: 1.1rem; letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #f43f5e, #fb923c);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header-right {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .wallet-pill {
+      background: #090d16; border: 1px solid #334155;
+      padding: 6px 10px; border-radius: 999px;
+      display: flex; align-items: center; gap: 6px;
+      font-weight: 800; font-size: 0.88rem; color: var(--success);
+    }
+    .deposit-btn {
+      background: linear-gradient(180deg, #22c55e, #16a34a);
+      color: #fff; border: none; border-radius: 999px;
+      padding: 6px 12px; font-weight: 800; font-size: 0.8rem;
+      cursor: pointer; box-shadow: 0 2px 10px rgba(34, 197, 94, 0.35);
+    }
+    .sound-mini-btn {
+      background: #1e293b; border: 1px solid #334155; color: #fff;
+      border-radius: 50%; width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 0.85rem;
+    }
+    .profile-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      border: 2px solid var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.9rem; cursor: pointer;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* 2. UPPER-MIDDLE CATEGORY NAVIGATION (Home, Hot, Popular, New, Crash) */
+    .category-bar {
+      display: flex; gap: 8px; overflow-x: auto;
+      padding: 10px 14px; background: #0b101e;
+      border-bottom: 1px solid #1e293b; scrollbar-width: none;
+    }
+    .category-bar::-webkit-scrollbar { display: none; }
+    .cat-pill {
+      padding: 7px 14px; border-radius: 999px;
+      background: #161f33; color: var(--muted);
+      border: 1px solid #263147; font-size: 0.82rem;
+      font-weight: 700; white-space: nowrap; cursor: pointer;
+      transition: 0.2s;
+    }
+    .cat-pill.active {
+      background: linear-gradient(90deg, #f43f5e, #e11d48);
+      color: #fff; border-color: #fb7185;
+      box-shadow: 0 2px 10px rgba(244, 63, 94, 0.35);
+    }
+
+    /* CONTAINER & VIEWS */
+    .container { padding: 12px 14px; }
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
+    /* PROMO HERO & LIVE WINS TICKER */
+    .hero-banner {
+      background: linear-gradient(135deg, #31102f 0%, #0f172a 60%, #1e3a8a 100%);
+      border: 1px solid #f43f5e55; border-radius: 16px;
+      padding: 16px; margin-bottom: 12px; text-align: left;
+      position: relative; overflow: hidden;
+    }
+    .hero-tag {
+      background: var(--accent); color: #fff; font-size: 0.68rem;
+      font-weight: 800; padding: 3px 8px; border-radius: 99px;
+      text-transform: uppercase;
+    }
+    .hero-title { font-size: 1.2rem; font-weight: 900; margin: 8px 0 4px; }
+    .hero-sub { font-size: 0.8rem; color: #cbd5e1; margin-bottom: 10px; }
+    .hero-btn {
+      background: var(--gold); color: #090d16; border: none;
+      padding: 7px 14px; border-radius: 8px; font-weight: 800;
+      font-size: 0.8rem; cursor: pointer;
+    }
+
+    .live-ticker {
+      background: #0f172a; border: 1px solid #1e293b;
+      border-radius: 10px; padding: 7px 12px; margin-bottom: 14px;
+      font-size: 0.78rem; display: flex; align-items: center; gap: 8px;
+      color: #cbd5e1; overflow: hidden; white-space: nowrap;
+    }
+    .pulse-dot {
+      width: 8px; height: 8px; background: var(--success);
+      border-radius: 50%; flex-shrink: 0;
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    /* LOBBY GAME CARDS GRID */
+    .games-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .game-card {
+      background: var(--surface); border: 1px solid #263147;
+      border-radius: 14px; padding: 14px; text-align: left;
+      position: relative; cursor: pointer; transition: transform 0.15s;
+      display: flex; flex-direction: column; justify-content: space-between;
+      min-height: 135px; overflow: hidden;
+    }
+    .game-card:active { transform: scale(0.97); }
+    .game-card.aviator-card { background: linear-gradient(145deg, #3b0a1e, #111827); border-color: #f43f5e66; }
+    .game-card.chicken-card { background: linear-gradient(145deg, #0c2e1f, #111827); border-color: #22c55e66; }
+    .game-card.mines-card { background: linear-gradient(145deg, #172554, #111827); border-color: #38bdf866; }
+    .game-card.wheel-card { background: linear-gradient(145deg, #3b2307, #111827); border-color: #f59e0b66; }
+
+    .badge-top {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.68rem; font-weight: 800;
+    }
+    .tag-badge { padding: 2px 7px; border-radius: 6px; text-transform: uppercase; }
+    .tag-hot { background: #f43f5e; color: #fff; }
+    .tag-new { background: #38bdf8; color: #090d16; }
+    .tag-pop { background: #f59e0b; color: #090d16; }
+    .online-count { color: #94a3b8; font-weight: 600; }
+
+    .game-icon { font-size: 2.2rem; margin: 10px 0 4px; }
+    .game-name { font-size: 1rem; font-weight: 800; }
+    .game-rtp { font-size: 0.72rem; color: var(--muted); }
+
+    /* CARDS & COMMON UI */
+    .card {
+      background: var(--surface); padding: 16px; border-radius: 14px;
+      margin-bottom: 14px; border: 1px solid #1f293d;
+      text-align: center;
+    }
+    .back-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .back-btn {
+      background: #1e293b; color: #fff; border: 1px solid #334155;
+      padding: 6px 12px; border-radius: 8px; font-weight: 700;
+      font-size: 0.82rem; cursor: pointer;
+    }
+
+    /* AVIATOR STAGE */
     .crash-pills {
       display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px;
       margin-bottom: 8px; scrollbar-width: none;
     }
     .pill {
-      padding: 3px 10px; border-radius: 999px; font-size: 0.75rem;
+      padding: 3px 10px; border-radius: 999px; font-size: 0.74rem;
       font-weight: 700; white-space: nowrap;
     }
     .pill-low { background: #1e3a8a; color: #60a5fa; border: 1px solid #2563eb; }
     .pill-mid { background: #4c1d95; color: #c084fc; border: 1px solid #7c3aed; }
     .pill-high { background: #831843; color: #f472b6; border: 1px solid #db2777; }
 
-    /* Classic Aviator Screen Container */
     .aviator-stage {
-      position: relative; width: 100%; height: 230px;
+      position: relative; width: 100%; height: 215px;
       border-radius: 12px; overflow: hidden; border: 2px solid #263147;
-      margin-bottom: 12px; background: #070a12;
+      margin-bottom: 10px; background: #070a12;
     }
-    canvas {
-      width: 100%; height: 100%; display: block;
-    }
+    canvas { width: 100%; height: 100%; display: block; }
     .aviator-hud {
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       pointer-events: none; text-align: center; width: 100%;
     }
     .flew-away-text {
-      font-size: 1rem; font-weight: 800; letter-spacing: 1px;
-      color: #f8fafc; text-transform: uppercase; margin-bottom: 2px;
+      font-size: 0.95rem; font-weight: 800; letter-spacing: 1px;
+      color: #f8fafc; text-transform: uppercase;
       display: none; text-shadow: 0 2px 8px rgba(0,0,0,0.8);
     }
     .multiplier-display {
-      font-size: 3.2rem; font-weight: 900; color: #ffffff;
+      font-size: 3rem; font-weight: 900; color: #ffffff;
       text-shadow: 0 4px 16px rgba(0,0,0,0.85); margin: 0;
     }
 
-    .stats-grid {
-      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px;
+    /* BET CONTROLS & AUTO CASHOUT */
+    .bet-controls-row {
+      display: flex; gap: 6px; margin-bottom: 8px;
     }
-    .stat-box { background: #1e293b; padding: 12px 6px; border-radius: 10px; }
-    .stat-value { font-size: 1.15rem; font-weight: bold; color: var(--blue); margin-top: 4px; }
-    
+    .chip-btn {
+      flex: 1; background: #1e293b; border: 1px solid #334155;
+      color: #cbd5e1; padding: 7px 0; border-radius: 8px;
+      font-weight: 700; font-size: 0.8rem; cursor: pointer;
+    }
+    .chip-btn.active { background: #2e1020; border-color: var(--accent); color: #fff; }
+
+    .auto-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #090d16; border: 1px solid #263147; border-radius: 10px;
+      padding: 8px 12px; margin-bottom: 10px; font-size: 0.85rem;
+    }
+    .auto-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
+    .auto-toggle input { width: 17px; height: 17px; accent-color: var(--accent); }
+    .auto-input-wrap {
+      display: flex; align-items: center; gap: 4px; background: #1e293b;
+      padding: 3px 8px; border-radius: 8px; border: 1px solid #334155;
+    }
+    .auto-input {
+      width: 55px; background: transparent; border: none; color: #fff;
+      font-size: 0.95rem; font-weight: 700; text-align: right; outline: none;
+    }
+
     .btn {
-      width: 100%; padding: 15px; border: none; border-radius: 12px;
-      font-size: 1.05rem; font-weight: 800; cursor: pointer; margin-top: 6px;
+      width: 100%; padding: 14px; border: none; border-radius: 12px;
+      font-size: 1rem; font-weight: 800; cursor: pointer;
       text-transform: uppercase; letter-spacing: 0.5px;
     }
     .btn-bet {
@@ -90,21 +254,97 @@
       background: linear-gradient(180deg, #f59e0b, #d97706); color: #fff;
       box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
     }
-    .btn-primary { background: var(--blue); color: #0f172a; }
+    .btn-primary { background: var(--blue); color: #090d16; }
 
-    /* AI Chat Box Styles */
+    /* LIVE SIMULATED AI LOBBY FEED */
+    .lobby-feed-card {
+      background: var(--surface); border: 1px solid #1f293d;
+      border-radius: 14px; padding: 12px; text-align: left;
+    }
+    .lobby-feed-header {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.82rem; font-weight: 800; margin-bottom: 8px;
+      padding-bottom: 6px; border-bottom: 1px solid #1e293b;
+    }
+    .bot-row {
+      display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+      align-items: center; padding: 6px 8px; border-radius: 8px;
+      font-size: 0.78rem; margin-bottom: 4px; background: #0b101e;
+      transition: background 0.2s;
+    }
+    .bot-row.won {
+      background: rgba(34, 197, 94, 0.14);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+    .bot-row.crashed {
+      opacity: 0.55;
+    }
+    .bot-user { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+    .bot-mult-badge {
+      padding: 2px 6px; border-radius: 6px; font-weight: 800;
+      font-size: 0.72rem; text-align: center; display: inline-block;
+    }
+
+    /* CHICKEN & MINES GRIDS */
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 14px 0; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0; }
+    .tile {
+      background: #1e293b; padding: 16px 0; border-radius: 10px;
+      font-size: 1.35rem; cursor: pointer; user-select: none;
+      border: 1px solid #334155; transition: transform 0.1s;
+    }
+    .tile:active { transform: scale(0.93); }
+
+    /* SPIN & WIN WHEEL */
+    .wheel-wrapper {
+      position: relative; width: 250px; height: 250px;
+      margin: 12px auto 18px;
+    }
+    .wheel-pointer {
+      position: absolute; top: -12px; left: 50%;
+      transform: translateX(-50%); font-size: 1.8rem; z-index: 10;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7));
+    }
+    #wheelCanvas {
+      width: 250px; height: 250px; border-radius: 50%;
+      border: 4px solid var(--gold);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+      transition: transform 3.6s cubic-bezier(0.15, 0.85, 0.25, 1);
+    }
+
+    /* INVITE & PROFILE */
+    .ref-box {
+      background: #090d16; border: 1px dashed var(--blue);
+      padding: 12px; border-radius: 10px; margin: 12px 0;
+      font-size: 0.82rem; word-break: break-all; color: var(--blue);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0;
+    }
+    .stat-box { background: #1e293b; padding: 12px 6px; border-radius: 10px; }
+    .stat-value { font-size: 1.1rem; font-weight: 800; color: var(--blue); margin-top: 4px; }
+
+    /* SUPPORT & AI COACH */
     .chat-box {
       background: #090d16; border: 1px solid #263147; border-radius: 10px;
-      height: 160px; overflow-y: auto; padding: 10px; text-align: left;
-      font-size: 0.88rem; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;
+      height: 220px; overflow-y: auto; padding: 10px; text-align: left;
+      font-size: 0.86rem; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;
     }
     .msg-ai {
-      background: #1e293b; color: #f8fafc; padding: 8px 12px;
-      border-radius: 10px 10px 10px 2px; align-self: flex-start; max-width: 85%;
+      background: #1e293b; color: #f8fafc; padding: 9px 12px;
+      border-radius: 10px 10px 10px 2px; align-self: flex-start; max-width: 86%;
     }
     .msg-user {
-      background: var(--accent); color: #fff; padding: 8px 12px; font-weight: 600;
-      border-radius: 10px 10px 2px 10px; align-self: flex-end; max-width: 85%;
+      background: var(--accent); color: #fff; padding: 9px 12px; font-weight: 600;
+      border-radius: 10px 10px 2px 10px; align-self: flex-end; max-width: 86%;
+    }
+    .quick-chips {
+      display: flex; gap: 6px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 4px;
+    }
+    .q-chip {
+      background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 5px 10px; border-radius: 99px; font-size: 0.74rem;
+      white-space: nowrap; cursor: pointer;
     }
     .chat-input-row { display: flex; gap: 8px; }
     .chat-input {
@@ -116,136 +356,730 @@
       border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
     }
 
-    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 16px 0; }
-    .tile {
-      background: #1e293b; padding: 18px 0; border-radius: 8px;
-      font-size: 1.3rem; cursor: pointer; user-select: none; border: 1px solid #334155;
+    /* FIXED BOTTOM NAVIGATION BAR */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid #1e293b;
+      display: flex; justify-content: space-around; padding: 6px 4px 10px;
     }
-    .history-log { text-align: left; font-size: 0.85rem; margin-top: 10px; max-height: 90px; overflow-y: auto; }
-    .history-item { padding: 5px 0; border-bottom: 1px solid #1e293b; }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; color: var(--muted); font-size: 0.7rem; font-weight: 700;
+      cursor: pointer; background: none; border: none; padding: 4px 0;
+    }
+    .nav-item.active { color: var(--accent); }
+    .nav-icon { font-size: 1.25rem; }
+
+    /* VIRTUAL DEPOSIT VAULT MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75);
+      z-index: 200; display: none; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .modal-box {
+      background: var(--surface); border: 1px solid #334155;
+      border-radius: 16px; padding: 18px; width: 100%; max-width: 360px;
+      text-align: center;
+    }
+    .pack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+    .pack-btn {
+      background: #1e293b; border: 1px solid var(--success);
+      color: #fff; padding: 12px 8px; border-radius: 10px;
+      cursor: pointer; font-weight: 800;
+    }
   </style>
 </head>
 <body>
 
-  <!-- TOP WALLET BAR -->
-  <div class="wallet-banner">
-    <span>✈️ <b>Arcade Study Lab</b></span>
-    <span class="wallet-amount" id="topWalletBalance">1000 PTS</span>
-  </div>
-
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('aviator')">✈️ Aviator</button>
-    <button class="tab-btn" onclick="switchTab('chicken')">🐔 Chicken</button>
-    <button class="tab-btn" onclick="switchTab('dashboard')">📊 Dashboard</button>
-  </div>
-
-  <!-- AVIATOR VIEW (Default Active Tab) -->
-  <div class="card" id="aviatorSection">
-    <!-- Recent Multipliers Bar -->
-    <div class="crash-pills" id="crashPills">
-      <span class="pill pill-low">1.24x</span>
-      <span class="pill pill-mid">3.85x</span>
-      <span class="pill pill-low">1.08x</span>
-      <span class="pill pill-high">14.20x</span>
-      <span class="pill pill-mid">2.45x</span>
-    </div>
-
-    <!-- Classic Aviator Stage -->
-    <div class="aviator-stage">
-      <canvas id="aviatorCanvas" width="420" height="230"></canvas>
-      <div class="aviator-hud">
-        <div class="flew-away-text" id="flewAwayText">FLEW AWAY!</div>
-        <div class="multiplier-display" id="aviatorMult">1.00x</div>
+  <!-- 1. TOP HEADER BAR -->
+  <header class="app-header">
+    <div class="brand-logo">⚡ YENE LAB</div>
+    <div class="header-right">
+      <div class="wallet-pill">
+        <span>🪙</span>
+        <span id="topWalletBalance">1000 PTS</span>
       </div>
+      <button class="deposit-btn" onclick="openDepositModal()">+ Deposit</button>
+      <button class="sound-mini-btn" id="soundToggleBtn" onclick="toggleSound()">🔊</button>
+      <div class="profile-avatar" id="headerAvatar" onclick="switchMainView('profile')">👤</div>
     </div>
+  </header>
 
-    <button class="btn btn-bet" id="aviatorBtn" onclick="toggleAviator()">BET 100 PTS</button>
-  </div>
+  <!-- 2. UPPER-MIDDLE LOBBY CATEGORY BAR -->
+  <nav class="category-bar" id="categoryBar">
+    <div class="cat-pill active" onclick="filterCategory('all', this)">🏠 Home</div>
+    <div class="cat-pill" onclick="filterCategory('hot', this)">🔥 Hot</div>
+    <div class="cat-pill" onclick="filterCategory('popular', this)">⭐ Popular</div>
+    <div class="cat-pill" onclick="filterCategory('new', this)">✨ New</div>
+    <div class="cat-pill" onclick="filterCategory('crash', this)">🚀 Crash Games</div>
+  </nav>
 
-  <!-- CHICKEN VIEW -->
-  <div class="card" id="chickenSection" style="display: none;">
-    <h3>🐔 Chicken Step Grid</h3>
-    <div class="multiplier-display" id="chickenMult" style="font-size:2.4rem; margin:10px 0;">1.00x</div>
-    <div class="grid" id="chickenGrid"></div>
-    <button class="btn btn-bet" id="chickenBtn" onclick="startChicken()">BET 100 PTS</button>
-    <button class="btn btn-cashout" id="chickenCashoutBtn" onclick="cashoutChicken()" style="display:none;">CASH OUT</button>
-  </div>
+  <main class="container">
 
-  <!-- DASHBOARD VIEW -->
-  <div id="dashboardSection" style="display: none;">
-    <div class="card">
-      <h3 style="margin-top:0;">📊 Live Session Stats</h3>
-      <div class="stats-grid">
-        <div class="stat-box">
-          <div style="font-size:0.75rem">Wallet</div>
-          <div class="stat-value" id="walletBalance">1000 PTS</div>
+    <!-- ==========================================
+         VIEW 1: LOBBY (HOME & CATEGORIES)
+    =========================================== -->
+    <section id="view-lobby" class="view-section active">
+      <!-- Hero Promo Card -->
+      <div class="hero-banner" id="heroBanner">
+        <span class="hero-tag">🎓 Study Simulation Season</span>
+        <div class="hero-title">Spin the Daily Study Wheel!</div>
+        <div class="hero-sub">Test probability curves, watch AI lobby bots, & claim up to +1,000 Virtual PTS.</div>
+        <button class="hero-btn" onclick="switchMainView('spin')">🎡 Spin & Win Now</button>
+      </div>
+
+      <!-- Live Global Ticker -->
+      <div class="live-ticker">
+        <span class="pulse-dot"></span>
+        <span id="liveTickerText">🔥 <b>Abebe_T</b> just cashed out <b>4.20x (+420 PTS)</b> in Aviator!</span>
+      </div>
+
+      <!-- Filterable Game Cards Grid -->
+      <div class="games-grid" id="gamesGrid">
+        <!-- Aviator Card -->
+        <div class="game-card aviator-card" data-cats="all hot popular crash" onclick="openGame('aviator')">
+          <div class="badge-top">
+            <span class="tag-badge tag-hot">🔥 HOT</span>
+            <span class="online-count">🟢 142 bots</span>
+          </div>
+          <div class="game-icon">✈️</div>
+          <div>
+            <div class="game-name">Aviator Pro</div>
+            <div class="game-rtp">Crash Curve • 97% RTP</div>
+          </div>
         </div>
-        <div class="stat-box">
-          <div style="font-size:0.75rem">Profit</div>
-          <div class="stat-value" id="sessionProfit">0 PTS</div>
-        </div>
-        <div class="stat-box">
-          <div style="font-size:0.75rem">Rounds</div>
-          <div class="stat-value" id="sessionGames">0</div>
-        </div>
-      </div>
-      <div class="history-log" id="historyLog">
-        <i>Play Aviator or Chicken to log rounds...</i>
-      </div>
-      <button class="btn btn-primary" style="margin-top:12px; padding:10px; font-size:0.9rem;" onclick="syncAndClose()">
-        💾 Save Session Balance to Bot Chat
-      </button>
-    </div>
 
-    <!-- IN-APP GEMINI AI AGENT CHAT BOX -->
-    <div class="card">
-      <h3 style="margin-top:0;">🤖 Gemini Lab Coach</h3>
-      <div class="chat-box" id="chatBox">
-        <div class="msg-ai">👋 Welcome! Ask me to explain Aviator crash probabilities or type "bonus" if you need +500 virtual study PTS!</div>
+        <!-- Chicken Road Card -->
+        <div class="game-card chicken-card" data-cats="all hot new" onclick="openGame('chicken')">
+          <div class="badge-top">
+            <span class="tag-badge tag-new">✨ NEW</span>
+            <span class="online-count">🟢 89 bots</span>
+          </div>
+          <div class="game-icon">🐔</div>
+          <div>
+            <div class="game-name">Chicken Cross</div>
+            <div class="game-rtp">Step Multiplier • 5 Tiles</div>
+          </div>
+        </div>
+
+        <!-- Cyber Mines Card -->
+        <div class="game-card mines-card" data-cats="all popular new" onclick="openGame('mines')">
+          <div class="badge-top">
+            <span class="tag-badge tag-new">✨ NEW</span>
+            <span class="online-count">🟢 64 bots</span>
+          </div>
+          <div class="game-icon">💎</div>
+          <div>
+            <div class="game-name">Cyber Mines</div>
+            <div class="game-rtp">4x4 Grid • Hidden Gems</div>
+          </div>
+        </div>
+
+        <!-- Lucky Wheel Card -->
+        <div class="game-card wheel-card" data-cats="all popular hot" onclick="switchMainView('spin')">
+          <div class="badge-top">
+            <span class="tag-badge tag-pop">⭐ POPULAR</span>
+            <span class="online-count">🎁 Free PTS</span>
+          </div>
+          <div class="game-icon">🎡</div>
+          <div>
+            <div class="game-name">Spin & Win</div>
+            <div class="game-rtp">Instant Study Bonus</div>
+          </div>
+        </div>
       </div>
-      <div class="chat-input-row">
-        <input type="text" id="chatInput" class="chat-input" placeholder="Ask the AI Agent..." onkeypress="if(event.key==='Enter') sendChatMessage()" />
-        <button class="chat-send-btn" onclick="sendChatMessage()">Send</button>
+    </section>
+
+    <!-- ==========================================
+         VIEW 2: ACTIVE GAME STAGE (Aviator / Chicken / Mines)
+    =========================================== -->
+    <section id="view-game" class="view-section">
+      <div class="back-bar">
+        <button class="back-btn" onclick="switchMainView('lobby')">← Back to Lobby</button>
+        <div style="display:flex; gap:6px;">
+          <button class="back-btn" onclick="openGame('aviator')">✈️</button>
+          <button class="back-btn" onclick="openGame('chicken')">🐔</button>
+          <button class="back-btn" onclick="openGame('mines')">💎</button>
+        </div>
       </div>
+
+      <!-- AVIATOR SUB-GAME -->
+      <div id="game-aviator">
+        <div class="card" style="padding:12px;">
+          <div class="crash-pills" id="crashPills">
+            <span class="pill pill-low">1.24x</span>
+            <span class="pill pill-mid">3.85x</span>
+            <span class="pill pill-low">1.08x</span>
+            <span class="pill pill-high">14.20x</span>
+            <span class="pill pill-mid">2.45x</span>
+          </div>
+
+          <div class="aviator-stage">
+            <canvas id="aviatorCanvas" width="420" height="215"></canvas>
+            <div class="aviator-hud">
+              <div class="flew-away-text" id="flewAwayText">FLEW AWAY!</div>
+              <div class="multiplier-display" id="aviatorMult">1.00x</div>
+            </div>
+          </div>
+
+          <!-- Wager Amount Selector -->
+          <div class="bet-controls-row">
+            <button class="chip-btn" onclick="setWager(50, this)">50 PTS</button>
+            <button class="chip-btn active" onclick="setWager(100, this)">100 PTS</button>
+            <button class="chip-btn" onclick="setWager(250, this)">250 PTS</button>
+            <button class="chip-btn" onclick="setWager(500, this)">500 PTS</button>
+          </div>
+
+          <!-- Auto-Cashout Control -->
+          <div class="auto-bar">
+            <label class="auto-toggle">
+              <input type="checkbox" id="autoCashoutCheck" />
+              <span>Auto Cash Out</span>
+            </label>
+            <div class="auto-input-wrap">
+              <input type="number" id="autoCashoutInput" class="auto-input" value="2.00" min="1.10" max="100.00" step="0.10" />
+              <span style="color:#94a3b8; font-weight:700;">x</span>
+            </div>
+          </div>
+
+          <button class="btn btn-bet" id="aviatorBtn" onclick="toggleAviator()">BET 100 PTS</button>
+        </div>
+
+        <!-- LIVE AI BOTS LOBBY FEED -->
+        <div class="lobby-feed-card">
+          <div class="lobby-feed-header">
+            <span>🤖 Live Study Lobby Feed</span>
+            <span style="color:var(--success);" id="activeBotsCounter">8/8 In Flight</span>
+          </div>
+          <div id="aiLobbyFeedList"></div>
+        </div>
+      </div>
+
+      <!-- CHICKEN SUB-GAME -->
+      <div id="game-chicken" style="display:none;">
+        <div class="card">
+          <h3 style="margin:0 0 6px;">🐔 Chicken Cross Road</h3>
+          <p style="font-size:0.78rem; color:var(--muted); margin:0;">4 Safe Chickens (+0.30x each), 1 Hidden Fox!</p>
+          <div class="multiplier-display" id="chickenMult" style="font-size:2.5rem; margin:10px 0;">1.00x</div>
+          <div class="grid-5" id="chickenGrid"></div>
+          <button class="btn btn-bet" id="chickenBtn" onclick="startChicken()">BET 100 PTS</button>
+          <button class="btn btn-cashout" id="chickenCashoutBtn" onclick="cashoutChicken()" style="display:none;">CASH OUT</button>
+        </div>
+      </div>
+
+      <!-- CYBER MINES SUB-GAME -->
+      <div id="game-mines" style="display:none;">
+        <div class="card">
+          <h3 style="margin:0 0 6px;">💎 Cyber Mines 4x4</h3>
+          <p style="font-size:0.78rem; color:var(--muted); margin:0;">13 Cyber Gems (+0.20x each), 3 Hidden Bombs!</p>
+          <div class="multiplier-display" id="minesMult" style="font-size:2.5rem; margin:10px 0;">1.00x</div>
+          <div class="grid-4" id="minesGrid"></div>
+          <button class="btn btn-bet" id="minesBtn" onclick="startMines()">BET 100 PTS</button>
+          <button class="btn btn-cashout" id="minesCashoutBtn" onclick="cashoutMines()" style="display:none;">CASH OUT</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 3: SPIN & WIN (LUCKY WHEEL)
+    =========================================== -->
+    <section id="view-spin" class="view-section">
+      <div class="card">
+        <h3 style="margin-top:0;">🎡 Daily Spin & Win</h3>
+        <p style="font-size:0.82rem; color:var(--muted);">Spin the probability wheel for instant free virtual study tokens!</p>
+        <div class="wheel-wrapper">
+          <div class="wheel-pointer">🔻</div>
+          <canvas id="wheelCanvas" width="250" height="250"></canvas>
+        </div>
+        <div id="wheelResultText" style="font-weight:800; color:var(--gold); margin-bottom:10px; min-height:22px;"></div>
+        <button class="btn btn-cashout" id="spinBtn" onclick="spinWheel()">SPIN WHEEL (FREE)</button>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 4: INVITE & EARN
+    =========================================== -->
+    <section id="view-invite" class="view-section">
+      <div class="card">
+        <div style="font-size:2.6rem;">🎁</div>
+        <h3 style="margin:6px 0;">Invite Classmates & Earn</h3>
+        <p style="font-size:0.82rem; color:var(--muted);">Share your study simulator link. Earn <b>+250 Virtual PTS</b> for every friend who joins the lab!</p>
+
+        <div class="stats-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="stat-box">
+            <div style="font-size:0.75rem">Friends Invited</div>
+            <div class="stat-value" id="invitedCount">0</div>
+          </div>
+          <div class="stat-box">
+            <div style="font-size:0.75rem">Referral Bonus</div>
+            <div class="stat-value" id="referralEarned" style="color:var(--success);">0 PTS</div>
+          </div>
+        </div>
+
+        <div class="ref-box" id="refLinkBox">https://t.me/YeneStudyBot?start=ref_study101</div>
+        <button class="btn btn-primary" onclick="copyReferralLink()">📋 Copy Invite Link</button>
+        <button class="btn btn-bet" style="margin-top:8px;" onclick="simulateFriendJoin()">🧪 Simulate Friend Join (+250 PTS)</button>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 5: PROFILE DASHBOARD
+    =========================================== -->
+    <section id="view-profile" class="view-section">
+      <div class="card">
+        <div class="profile-avatar" id="bigProfileAvatar" style="width:68px; height:68px; margin:0 auto 10px; font-size:1.6rem;">👤</div>
+        <h3 id="profileName" style="margin:0;">Study Pilot</h3>
+        <div id="profileRank" style="font-size:0.78rem; color:var(--gold); font-weight:800; margin-top:4px;">🏅 Rank: Bronze Probability Analyst</div>
+
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div style="font-size:0.72rem">Wallet</div>
+            <div class="stat-value" id="walletBalance">1000 PTS</div>
+          </div>
+          <div class="stat-box">
+            <div style="font-size:0.72rem">Net Profit</div>
+            <div class="stat-value" id="sessionProfit">0 PTS</div>
+          </div>
+          <div class="stat-box">
+            <div style="font-size:0.72rem">Win Rate</div>
+            <div class="stat-value" id="winRateStat">0%</div>
+          </div>
+        </div>
+
+        <div style="text-align:left; font-size:0.82rem; font-weight:800; margin-top:12px;">📜 Recent Round Log</div>
+        <div id="historyLog" style="text-align:left; font-size:0.8rem; max-height:130px; overflow-y:auto; margin:8px 0;">
+          <i>Play any game to log your study rounds...</i>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top:10px;" onclick="syncAndClose()">
+          💾 Sync Balance & Save to Telegram Bot
+        </button>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 6: SUPPORT & GEMINI AI DESK
+    =========================================== -->
+    <section id="view-support" class="view-section">
+      <div class="card">
+        <h3 style="margin-top:0;">💬 Support & Gemini AI Coach</h3>
+        <div class="quick-chips">
+          <span class="q-chip" onclick="quickAsk('How does the 97% RTP math work?')">📐 Explain RTP Math</span>
+          <span class="q-chip" onclick="quickAsk('Give me a +500 PTS study bonus')">🎁 Request +500 Bonus</span>
+          <span class="q-chip" onclick="quickAsk('Analyze my session stats')">📊 Analyze My Stats</span>
+        </div>
+        <div class="chat-box" id="chatBox">
+          <div class="msg-ai">👋 Welcome to Yene Lab Support! Ask me about game probabilities, tap a quick chip above, or type "bonus" for a free virtual token top-up!</div>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" class="chat-input" placeholder="Message Support / AI..." onkeypress="if(event.key==='Enter') sendChatMessage()" />
+          <button class="chat-send-btn" onclick="sendChatMessage()">Send</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- VIRTUAL DEPOSIT VAULT MODAL -->
+  <div class="modal-overlay" id="depositModal">
+    <div class="modal-box">
+      <h3 style="margin-top:0;">🪙 Virtual Study Vault</h3>
+      <p style="font-size:0.8rem; color:var(--muted);">100% Free Educational Tokens (No real money). Select a virtual refill pack:</p>
+      <div class="pack-grid">
+        <button class="pack-btn" onclick="claimDepositPack(500)">+500 PTS<br><span style="font-size:0.7rem; color:var(--muted);">Starter Pack</span></button>
+        <button class="pack-btn" onclick="claimDepositPack(2000)">+2,000 PTS<br><span style="font-size:0.7rem; color:var(--gold);">Pro Lab Pack</span></button>
+      </div>
+      <div class="chat-input-row" style="margin:10px 0;">
+        <input type="text" id="promoCodeInput" class="chat-input" placeholder="Promo Code (Try STUDY2026)" />
+        <button class="chat-send-btn" onclick="redeemPromoCode()">Claim</button>
+      </div>
+      <button class="back-btn" style="width:100%; margin-top:6px;" onclick="closeDepositModal()">Close Window</button>
     </div>
   </div>
+
+  <!-- 5. FIXED BOTTOM NAVIGATION BAR -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchMainView('lobby')">
+      <span class="nav-icon">🎮</span>
+      <span>Games</span>
+    </button>
+    <button class="nav-item" onclick="switchMainView('spin')">
+      <span class="nav-icon">🎡</span>
+      <span>Spin & Win</span>
+    </button>
+    <button class="nav-item" onclick="switchMainView('invite')">
+      <span class="nav-icon">🎁</span>
+      <span>Invite</span>
+    </button>
+    <button class="nav-item" onclick="switchMainView('profile')">
+      <span class="nav-icon">👤</span>
+      <span>Profile</span>
+    </button>
+    <button class="nav-item" onclick="switchMainView('support')">
+      <span class="nav-icon">💬</span>
+      <span>Support</span>
+    </button>
+  </nav>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
 
-    // 1. Read Wallet & Key from URL
+    // ==========================================
+    // 1. USER PROFILE & URL PARAMS SETUP
+    // ==========================================
     const urlParams = new URLSearchParams(window.location.search);
     let currentWalletBalance = parseInt(urlParams.get('tokens'));
     if (isNaN(currentWalletBalance)) currentWalletBalance = 1000;
     const geminiApiKey = urlParams.get('key') || "";
 
+    const tgUser = tg.initDataUnsafe?.user;
+    if (tgUser) {
+      const fullName = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(" ");
+      document.getElementById('profileName').innerText = fullName || "Study Pilot";
+      document.getElementById('refLinkBox').innerText = `https://t.me/YeneStudyBot?start=ref_${tgUser.id}`;
+      if (tgUser.photo_url) {
+        document.getElementById('headerAvatar').innerHTML = `<img src="${tgUser.photo_url}" alt="pic" />`;
+        document.getElementById('bigProfileAvatar').innerHTML = `<img src="${tgUser.photo_url}" alt="pic" />`;
+      } else if (tgUser.first_name) {
+        const initial = tgUser.first_name.charAt(0).toUpperCase();
+        document.getElementById('headerAvatar').innerText = initial;
+        document.getElementById('bigProfileAvatar').innerText = initial;
+      }
+    }
+
+    let currentWager = 100;
+    let sessionProfit = 0, sessionGames = 0, sessionWins = 0;
+
     function updateWalletUI() {
       document.getElementById('walletBalance').innerText = currentWalletBalance + " PTS";
       document.getElementById('topWalletBalance').innerText = currentWalletBalance + " PTS";
+      const rate = sessionGames > 0 ? Math.round((sessionWins / sessionGames) * 100) : 0;
+      document.getElementById('winRateStat').innerText = rate + "%";
+
+      const rankEl = document.getElementById('profileRank');
+      if (sessionGames >= 15) rankEl.innerText = "💎 Rank: Diamond Probability Master";
+      else if (sessionGames >= 5) rankEl.innerText = "🥇 Rank: Gold Lab Strategist";
     }
     updateWalletUI();
 
-    let sessionProfit = 0, sessionGames = 0;
-    
+    function setWager(amt, btnEl) {
+      if (flying) return;
+      currentWager = amt;
+      document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+      document.getElementById('aviatorBtn').innerText = `BET ${currentWager} PTS`;
+    }
+
+    // ==========================================
+    // 2. NAVIGATION & CATEGORY FILTERING
+    // ==========================================
+    function switchMainView(viewName) {
+      ['lobby', 'game', 'spin', 'invite', 'profile', 'support'].forEach(v => {
+        document.getElementById('view-' + v).classList.toggle('active', v === viewName);
+      });
+      document.getElementById('categoryBar').style.display = (viewName === 'lobby') ? 'flex' : 'none';
+
+      const navMap = { lobby: 0, game: 0, spin: 1, invite: 2, profile: 3, support: 4 };
+      document.querySelectorAll('.nav-item').forEach((item, idx) => {
+        item.classList.toggle('active', idx === navMap[viewName]);
+      });
+    }
+
+    function filterCategory(cat, pillEl) {
+      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+      pillEl.classList.add('active');
+      switchMainView('lobby');
+
+      document.querySelectorAll('.game-card').forEach(card => {
+        const cats = card.getAttribute('data-cats');
+        card.style.display = cats.includes(cat) ? 'flex' : 'none';
+      });
+    }
+
+    function openGame(gameType) {
+      switchMainView('game');
+      ['aviator', 'chicken', 'mines'].forEach(g => {
+        document.getElementById('game-' + g).style.display = (g === gameType) ? 'block' : 'none';
+      });
+      if (gameType === 'aviator') renderScene();
+    }
+
+    // ==========================================
+    // 3. SYNTHESIZED SOUND ENGINE
+    // ==========================================
+    let audioCtx = null, soundEnabled = true, engineOsc = null, engineGain = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundToggleBtn').innerText = soundEnabled ? '🔊' : '🔇';
+      if (!soundEnabled) stopEngineSound();
+    }
+
+    function startEngineSound() {
+      if (!soundEnabled) return;
+      initAudio(); stopEngineSound();
+      engineOsc = audioCtx.createOscillator();
+      engineGain = audioCtx.createGain();
+      engineOsc.type = 'triangle';
+      engineOsc.frequency.setValueAtTime(75, audioCtx.currentTime);
+      engineGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      engineOsc.connect(engineGain); engineGain.connect(audioCtx.destination);
+      engineOsc.start();
+    }
+
+    function updateEnginePitch(mult) {
+      if (!soundEnabled || !engineOsc || !audioCtx) return;
+      const targetFreq = Math.min(75 + (mult - 1) * 45, 360);
+      engineOsc.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.05);
+    }
+
+    function stopEngineSound() {
+      if (engineOsc) {
+        try { engineOsc.stop(); engineOsc.disconnect(); } catch (e) {}
+        engineOsc = null;
+      }
+    }
+
+    function playCashoutChime() {
+      if (!soundEnabled) return;
+      initAudio();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(783.99, now + 0.09);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 0.35);
+    }
+
+    function playCrashSound() {
+      if (!soundEnabled) return;
+      initAudio();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(280, now);
+      osc.frequency.exponentialRampToValueAtTime(45, now + 0.35);
+      gain.gain.setValueAtTime(0.13, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 0.35);
+    }
+
+    // ==========================================
+    // 4. RECORD ROUNDS & LIVE GLOBAL TICKER
+    // ==========================================
     function recordRound(game, amount) {
       sessionGames++;
+      if (amount > 0) sessionWins++;
       sessionProfit += amount;
       currentWalletBalance = Math.max(0, currentWalletBalance + amount);
       updateWalletUI();
 
       document.getElementById('sessionProfit').innerText = (sessionProfit >= 0 ? "+" : "") + sessionProfit + " PTS";
       document.getElementById('sessionProfit').style.color = sessionProfit >= 0 ? "var(--success)" : "var(--danger)";
-      document.getElementById('sessionGames').innerText = sessionGames;
       
       const log = document.getElementById('historyLog');
-      if (log.innerHTML.includes("Play Aviator")) log.innerHTML = "";
+      if (log.innerHTML.includes("Play any game")) log.innerHTML = "";
       const entry = document.createElement('div');
-      entry.className = "history-item";
-      entry.innerHTML = `<b>${game}</b>: ${amount >= 0 ? '<span style="color:#22c55e">Won</span>' : '<span style="color:#ef4444">Lost</span>'} ${Math.abs(amount)} PTS`;
+      entry.style.padding = "5px 0";
+      entry.style.borderBottom = "1px solid #1e293b";
+      entry.innerHTML = `<b>${game}</b>: ${amount >= 0 ? '<span style="color:#22c55e">+' + amount + ' PTS</span>' : '<span style="color:#ef4444">' + amount + ' PTS</span>'}`;
       log.prepend(entry);
     }
+
+    const tickerNames = ["Abebe_T", "SkyPilot", "Dawit_X", "Hana_99", "Kaleb_Pro", "Yonas_7", "Sara_ET"];
+    setInterval(() => {
+      const name = tickerNames[Math.floor(Math.random() * tickerNames.length)];
+      const m = (1.3 + Math.random() * 5.5).toFixed(2);
+      const pts = Math.round(100 * m);
+      document.getElementById('liveTickerText').innerHTML = `🔥 <b>${name}</b> cashed out <b>${m}x (+${pts} PTS)</b> in Aviator Pro!`;
+    }, 4500);
+
+    // ==========================================
+    // 5. LIVE AI BOTS LOBBY FEED (FOR AVIATOR)
+    // ==========================================
+    const botRoster = [
+      { name: "Abebe_T", icon: "🦁" },
+      { name: "SkyPilot", icon: "🚀" },
+      { name: "Dawit_X", icon: "⚡" },
+      { name: "Hana_99", icon: "🌟" },
+      { name: "Kaleb_Pro", icon: "🔥" },
+      { name: "Luna_ET", icon: "💎" },
+      { name: "Yonas_7", icon: "🦅" },
+      { name: "CyberFox", icon: "🦊" }
+    ];
+    let activeBots = [];
+
+    function generateLobbyBots() {
+      activeBots = botRoster.map(b => {
+        const wager = [50, 100, 150, 200, 500][Math.floor(Math.random() * 5)];
+        const target = parseFloat((1.15 + Math.pow(Math.random(), 2) * 6.5).toFixed(2));
+        return { ...b, wager, target, status: "flying", profit: 0 };
+      });
+      renderLobbyBots();
+    }
+
+    function renderLobbyBots() {
+      const list = document.getElementById('aiLobbyFeedList');
+      let flyingCount = 0;
+      list.innerHTML = activeBots.map(b => {
+        if (b.status === "flying") flyingCount++;
+        const rowCls = b.status === "won" ? "bot-row won" : (b.status === "crashed" ? "bot-row crashed" : "bot-row");
+        const multBadge = b.status === "won"
+          ? `<span class="bot-mult-badge" style="background:#16a34a;color:#fff;">${b.target.toFixed(2)}x</span>`
+          : (b.status === "crashed" ? `<span class="bot-mult-badge" style="background:#ef4444;color:#fff;">💥</span>` : `<span style="color:#94a3b8;">In Flight...</span>`);
+        const winCol = b.status === "won"
+          ? `<b style="color:#22c55e;">+${b.profit} PTS</b>`
+          : (b.status === "crashed" ? `<span style="color:#ef4444;">-${b.wager}</span>` : `-`);
+
+        return `<div class="${rowCls}">
+          <div class="bot-user"><span>${b.icon}</span><span>${b.name}</span></div>
+          <div>${b.wager} PTS</div>
+          <div>${multBadge}</div>
+          <div style="text-align:right;">${winCol}</div>
+        </div>`;
+      }).join("");
+      document.getElementById('activeBotsCounter').innerText = `${flyingCount}/${activeBots.length} In Flight`;
+    }
+
+    function updateLobbyBotsOnTick(mult, isCrash) {
+      let changed = false;
+      activeBots.forEach(b => {
+        if (b.status === "flying") {
+          if (!isCrash && mult >= b.target) {
+            b.status = "won";
+            b.profit = Math.round(b.wager * b.target);
+            changed = true;
+          } else if (isCrash) {
+            b.status = "crashed";
+            changed = true;
+          }
+        }
+      });
+      if (changed) renderLobbyBots();
+    }
+    generateLobbyBots();
+
+    // ==========================================
+    // 6. AVIATOR GRAPHICS & GAMEPLAY ENGINE
+    // ==========================================
+    const canvas = document.getElementById('aviatorCanvas');
+    const ctx = canvas.getContext('2d');
+    let flying = false, crashed = false, cashedOut = false;
+    let currentMult = 1.00, crashPoint = 1.00, flightTime = 0;
+    let bgAngle = 0, flyAwayOffset = 0, animId = null;
+
+    function drawSunburst() {
+      const originX = 24, originY = canvas.height - 24;
+      ctx.fillStyle = '#070a12';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.translate(originX, originY);
+      ctx.rotate(bgAngle);
+      for (let i = 0; i < 36; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, 520, (i * 2 * Math.PI) / 36, ((i + 0.5) * 2 * Math.PI) / 36);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.36)';
+        ctx.fill();
+      }
+      ctx.restore();
+
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(24, 0); ctx.lineTo(24, canvas.height - 24); ctx.lineTo(canvas.width, canvas.height - 24);
+      ctx.stroke();
+    }
+
+    function drawRedAirplane(x, y, tiltAngle) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(tiltAngle);
+
+      if (flying || crashed) {
+        ctx.beginPath();
+        ctx.moveTo(-22, 0);
+        ctx.lineTo(-34 - (flightTime % 8), -4);
+        ctx.lineTo(-34 - (flightTime % 8), 4);
+        ctx.closePath();
+        ctx.fillStyle = '#fb923c'; ctx.fill();
+      }
+
+      ctx.fillStyle = '#e11d48';
+      ctx.shadowColor = '#f43f5e'; ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(22, 0);
+      ctx.quadraticCurveTo(10, -8, -18, -5);
+      ctx.lineTo(-24, -14); ctx.lineTo(-27, -14); ctx.lineTo(-22, 2);
+      ctx.quadraticCurveTo(5, 8, 22, 0);
+      ctx.closePath(); ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath(); ctx.ellipse(2, -4, 7, 3.5, 0, Math.PI, 0); ctx.fill();
+
+      ctx.fillStyle = '#be123c';
+      ctx.beginPath();
+      ctx.moveTo(6, 1); ctx.lineTo(-8, 12); ctx.lineTo(-14, 12); ctx.lineTo(-4, 1);
+      ctx.closePath(); ctx.fill();
+
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2.5;
+      const propLen = (flightTime % 2 === 0) ? 11 : 5;
+      ctx.beginPath(); ctx.moveTo(23, -propLen); ctx.lineTo(23, propLen); ctx.stroke();
+      ctx.restore();
+    }
+
+    function renderScene() {
+      drawSunburst();
+      const startX = 24, startY = canvas.height - 24;
+      const progress = Math.min(flightTime / 140, 1);
+      const bobY = flying ? Math.sin(flightTime * 0.12) * 6 : 0;
+      let planeX = startX + progress * (canvas.width - 110);
+      let planeY = startY - Math.pow(progress, 1.35) * (canvas.height - 95) + bobY;
+
+      if (!crashed) {
+        const grad = ctx.createLinearGradient(0, planeY, 0, startY);
+        grad.addColorStop(0, 'rgba(225, 29, 72, 0.55)');
+        grad.addColorStop(1, 'rgba(225, 29, 72, 0.02)');
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.quadraticCurveTo(startX + (planeX - startX) * 0.55, startY, planeX, planeY);
+        ctx.lineTo(planeX, startY); ctx.closePath();
+        ctx.fillStyle = grad; ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.quadraticCurveTo(startX + (planeX - startX) * 0.55, startY, planeX, planeY);
+        ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 4;
+        ctx.shadowColor = '#f43f5e'; ctx.shadowBlur = 10; ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        drawRedAirplane(planeX, planeY, -0.22);
+      } else {
+        drawRedAirplane(planeX + flyAwayOffset * 1.8, planeY - flyAwayOffset * 1.1, -0.45);
+      }
+    }
+    renderScene();
 
     function addCrashPill(mult) {
       const container = document.getElementById('crashPills');
@@ -256,184 +1090,18 @@
       container.prepend(pill);
     }
 
-    function syncAndClose() {
-      tg.sendData(JSON.stringify({ game: "Mini App Session", net_change: sessionProfit }));
+    function executeCashout(multToLock) {
+      if (cashedOut) return;
+      cashedOut = true;
+      playCashoutChime();
+      const profit = Math.round(currentWager * multToLock) - currentWager;
+      recordRound("Aviator Pro", profit);
+      const display = document.getElementById("aviatorMult");
+      const btn = document.getElementById("aviatorBtn");
+      display.style.color = "var(--success)";
+      btn.innerText = `✅ WON +${profit} PTS (${multToLock.toFixed(2)}x)`;
+      btn.className = "btn btn-bet";
     }
-
-    function switchTab(tab) {
-      ['aviator', 'chicken', 'dashboard'].forEach(t => {
-        document.getElementById(t + 'Section').style.display = (t === tab) ? 'block' : 'none';
-      });
-      const btns = document.querySelectorAll('.tab-btn');
-      btns[0].classList.toggle('active', tab === 'aviator');
-      btns[1].classList.toggle('active', tab === 'chicken');
-      btns[2].classList.toggle('active', tab === 'dashboard');
-    }
-
-    // --- 2. CLASSIC AVIATOR GRAPHICS ENGINE ---
-    const canvas = document.getElementById('aviatorCanvas');
-    const ctx = canvas.getContext('2d');
-    let flying = false, crashed = false, cashedOut = false;
-    let currentMult = 1.00, crashPoint = 1.00, flightTime = 0;
-    let bgAngle = 0, flyAwayOffset = 0, animId = null;
-
-    // Draw rotating dark sunburst rays from bottom-left
-    function drawSunburst() {
-      const originX = 24;
-      const originY = canvas.height - 24;
-      const numRays = 36;
-      const radius = 550;
-
-      ctx.fillStyle = '#070a12';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.save();
-      ctx.translate(originX, originY);
-      ctx.rotate(bgAngle);
-
-      for (let i = 0; i < numRays; i++) {
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        const startA = (i * 2 * Math.PI) / numRays;
-        const endA = ((i + 0.5) * 2 * Math.PI) / numRays;
-        ctx.arc(0, 0, radius, startA, endA);
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(30, 41, 59, 0.38)';
-        ctx.fill();
-      }
-      ctx.restore();
-
-      // Draw scrolling axis dots
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(24, 0);
-      ctx.lineTo(24, canvas.height - 24);
-      ctx.lineTo(canvas.width, canvas.height - 24);
-      ctx.stroke();
-
-      const offset = (flightTime * 3) % 30;
-      ctx.fillStyle = '#475569';
-      for (let x = 40; x < canvas.width; x += 30) {
-        ctx.beginPath();
-        ctx.arc(x - offset, canvas.height - 12, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      for (let y = canvas.height - 40; y > 10; y -= 30) {
-        ctx.beginPath();
-        ctx.arc(12, y + offset, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // Draw custom red stunt propeller airplane
-    function drawRedAirplane(x, y, tiltAngle) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(tiltAngle);
-
-      // Engine flame glow
-      if (flying || crashed) {
-        ctx.beginPath();
-        ctx.moveTo(-22, 0);
-        ctx.lineTo(-34 - (flightTime % 8), -4);
-        ctx.lineTo(-34 - (flightTime % 8), 4);
-        ctx.closePath();
-        ctx.fillStyle = '#fb923c';
-        ctx.fill();
-      }
-
-      // Main red fuselage
-      ctx.fillStyle = '#e11d48';
-      ctx.shadowColor = '#f43f5e';
-      ctx.shadowBlur = 12;
-      ctx.beginPath();
-      ctx.moveTo(22, 0);        // Nose
-      ctx.quadraticCurveTo(10, -8, -18, -5);
-      ctx.lineTo(-24, -14);     // Tail fin top
-      ctx.lineTo(-27, -14);
-      ctx.lineTo(-22, 2);       // Tail bottom
-      ctx.quadraticCurveTo(5, 8, 22, 0);
-      ctx.closePath();
-      ctx.fill();
-
-      // Cockpit canopy
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = '#38bdf8';
-      ctx.beginPath();
-      ctx.ellipse(2, -4, 7, 3.5, 0, Math.PI, 0);
-      ctx.fill();
-
-      // Side Wing with X insignia
-      ctx.fillStyle = '#be123c';
-      ctx.beginPath();
-      ctx.moveTo(6, 1);
-      ctx.lineTo(-8, 12);
-      ctx.lineTo(-14, 12);
-      ctx.lineTo(-4, 1);
-      ctx.closePath();
-      ctx.fill();
-
-      // Spinning Propeller at nose
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 2.5;
-      const propLen = (flightTime % 2 === 0) ? 11 : 5;
-      ctx.beginPath();
-      ctx.moveTo(23, -propLen);
-      ctx.lineTo(23, propLen);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    function renderScene() {
-      drawSunburst();
-
-      const startX = 24;
-      const startY = canvas.height - 24;
-
-      // Calculate smooth bobbing position for the plane
-      const progress = Math.min(flightTime / 140, 1);
-      const bobY = flying ? Math.sin(flightTime * 0.12) * 6 : 0;
-      let planeX = startX + progress * (canvas.width - 110);
-      let planeY = startY - Math.pow(progress, 1.35) * (canvas.height - 95) + bobY;
-
-      // Only draw the red curve if the plane hasn't flown away yet
-      if (!crashed) {
-        // 1. Shaded Red Gradient under curve
-        const grad = ctx.createLinearGradient(0, planeY, 0, startY);
-        grad.addColorStop(0, 'rgba(225, 29, 72, 0.55)');
-        grad.addColorStop(1, 'rgba(225, 29, 72, 0.02)');
-
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.quadraticCurveTo(startX + (planeX - startX) * 0.55, startY, planeX, planeY);
-        ctx.lineTo(planeX, startY);
-        ctx.closePath();
-        ctx.fillStyle = grad;
-        ctx.fill();
-
-        // 2. Glowing Neon Red Curve Line
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.quadraticCurveTo(startX + (planeX - startX) * 0.55, startY, planeX, planeY);
-        ctx.strokeStyle = '#f43f5e';
-        ctx.lineWidth = 4;
-        ctx.shadowColor = '#f43f5e';
-        ctx.shadowBlur = 10;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // Draw Plane at tip of curve
-        drawRedAirplane(planeX, planeY, -0.22);
-      } else {
-        // Plane flies away rapidly off the top-right corner!
-        drawRedAirplane(planeX + flyAwayOffset * 1.8, planeY - flyAwayOffset * 1.1, -0.45);
-      }
-    }
-
-    // Initial render
-    renderScene();
 
     function toggleAviator() {
       const btn = document.getElementById("aviatorBtn");
@@ -441,50 +1109,57 @@
       const flewText = document.getElementById("flewAwayText");
 
       if (!flying) {
-        if (currentWalletBalance < 100) {
-          alert("Not enough tokens! Switch to Dashboard and type 'bonus' in the AI Coach!");
+        if (currentWalletBalance < currentWager) {
+          openDepositModal();
           return;
         }
         flying = true; crashed = false; cashedOut = false;
         flightTime = 0; flyAwayOffset = 0; currentMult = 1.00;
-        
-        // 97% RTP Probability Formula
         crashPoint = Math.max(1.00, Math.floor(((1 - 0.03) / (1 - Math.random())) * 100) / 100);
         
+        generateLobbyBots();
         flewText.style.display = "none";
         display.style.color = "#ffffff";
-        btn.innerText = "CASH OUT (100 PTS)";
+        btn.innerText = `CASH OUT (${currentWager} PTS)`;
         btn.className = "btn btn-cashout";
+        startEngineSound();
 
         function step() {
           if (!flying) return;
           flightTime++;
           bgAngle += 0.006;
           currentMult += 0.008 * currentMult;
+          updateEnginePitch(currentMult);
+          updateLobbyBotsOnTick(currentMult, false);
+
+          const autoEnabled = document.getElementById("autoCashoutCheck").checked;
+          const autoTarget = parseFloat(document.getElementById("autoCashoutInput").value) || 2.00;
+
+          if (!cashedOut && autoEnabled && currentMult >= autoTarget && autoTarget <= crashPoint) {
+            executeCashout(autoTarget);
+          }
 
           if (!cashedOut) {
-            const liveWin = Math.round(100 * currentMult);
+            const liveWin = Math.round(currentWager * currentMult);
             btn.innerText = `CASH OUT (${liveWin} PTS)`;
           }
 
           if (currentMult >= crashPoint) {
-            flying = false;
-            crashed = true;
+            flying = false; crashed = true;
+            stopEngineSound(); playCrashSound();
+            updateLobbyBotsOnTick(crashPoint, true);
+
             flewText.style.display = "block";
             display.innerText = `${crashPoint.toFixed(2)}x`;
             display.style.color = "var(--accent)";
             addCrashPill(crashPoint);
 
-            if (!cashedOut) {
-              recordRound("Aviator", -100);
-            }
-            btn.innerText = "BET 100 PTS";
+            if (!cashedOut) recordRound("Aviator Pro", -currentWager);
+            btn.innerText = `BET ${currentWager} PTS`;
             btn.className = "btn btn-bet";
 
-            // Animate the plane flying away off-screen
             function flyOff() {
-              flyAwayOffset += 9;
-              renderScene();
+              flyAwayOffset += 9; renderScene();
               if (flyAwayOffset < 220) requestAnimationFrame(flyOff);
             }
             flyOff();
@@ -496,19 +1171,199 @@
           animId = setTimeout(step, 40);
         }
         step();
-
       } else if (!cashedOut) {
-        // Player cashed out in time! Plane keeps flying until it crashes so they can see how high it went
-        cashedOut = true;
-        const profit = Math.round(100 * currentMult) - 100;
-        recordRound("Aviator", profit);
-        display.style.color = "var(--success)";
-        btn.innerText = `✅ WON +${profit} PTS (Waiting...)`;
-        btn.className = "btn btn-bet";
+        executeCashout(currentMult);
       }
     }
 
-    // --- 3. IN-APP GEMINI AI AGENT ---
+    // ==========================================
+    // 7. CHICKEN CROSS & CYBER MINES GAMES
+    // ==========================================
+    let chickenMult = 1.00, trapIndex = 0, playingChicken = false;
+    function startChicken() {
+      if (currentWalletBalance < 100) { openDepositModal(); return; }
+      playingChicken = true; chickenMult = 1.00;
+      trapIndex = Math.floor(Math.random() * 5);
+      document.getElementById("chickenMult").innerText = "1.00x";
+      document.getElementById("chickenMult").style.color = "#fff";
+      document.getElementById("chickenBtn").style.display = "none";
+      document.getElementById("chickenCashoutBtn").style.display = "block";
+      const grid = document.getElementById("chickenGrid"); grid.innerHTML = "";
+      for (let i = 0; i < 5; i++) {
+        const t = document.createElement("div"); t.className = "tile"; t.innerText = "❓";
+        t.onclick = () => {
+          if (!playingChicken || t.innerText !== "❓") return;
+          if (i === trapIndex) {
+            playCrashSound(); t.innerText = "🦊"; t.style.background = "var(--danger)";
+            playingChicken = false;
+            document.getElementById("chickenMult").innerText = "Caught! (-100 PTS)";
+            document.getElementById("chickenMult").style.color = "var(--danger)";
+            recordRound("Chicken Cross", -100);
+            document.getElementById("chickenBtn").style.display = "block";
+            document.getElementById("chickenCashoutBtn").style.display = "none";
+          } else {
+            playCashoutChime(); t.innerText = "🐔"; t.style.background = "var(--success)";
+            chickenMult += 0.30;
+            document.getElementById("chickenMult").innerText = `${chickenMult.toFixed(2)}x`;
+          }
+        };
+        grid.appendChild(t);
+      }
+    }
+    function cashoutChicken() {
+      if (!playingChicken || chickenMult <= 1.00) return;
+      playingChicken = false; playCashoutChime();
+      const profit = Math.round(100 * chickenMult) - 100;
+      document.getElementById("chickenMult").innerText = `✅ +${profit} PTS`;
+      document.getElementById("chickenMult").style.color = "var(--success)";
+      recordRound("Chicken Cross", profit);
+      document.getElementById("chickenBtn").style.display = "block";
+      document.getElementById("chickenCashoutBtn").style.display = "none";
+    }
+
+    let minesMult = 1.00, mineBombs = [], playingMines = false;
+    function startMines() {
+      if (currentWalletBalance < 100) { openDepositModal(); return; }
+      playingMines = true; minesMult = 1.00; mineBombs = [];
+      while (mineBombs.length < 3) {
+        const r = Math.floor(Math.random() * 16);
+        if (!mineBombs.includes(r)) mineBombs.push(r);
+      }
+      document.getElementById("minesMult").innerText = "1.00x";
+      document.getElementById("minesMult").style.color = "#fff";
+      document.getElementById("minesBtn").style.display = "none";
+      document.getElementById("minesCashoutBtn").style.display = "block";
+      const grid = document.getElementById("minesGrid"); grid.innerHTML = "";
+      for (let i = 0; i < 16; i++) {
+        const t = document.createElement("div"); t.className = "tile"; t.innerText = "🟦";
+        t.onclick = () => {
+          if (!playingMines || t.innerText !== "🟦") return;
+          if (mineBombs.includes(i)) {
+            playCrashSound(); t.innerText = "💣"; t.style.background = "var(--danger)";
+            playingMines = false;
+            document.getElementById("minesMult").innerText = "BOOM! (-100 PTS)";
+            document.getElementById("minesMult").style.color = "var(--danger)";
+            recordRound("Cyber Mines", -100);
+            document.getElementById("minesBtn").style.display = "block";
+            document.getElementById("minesCashoutBtn").style.display = "none";
+          } else {
+            playCashoutChime(); t.innerText = "💎"; t.style.background = "var(--blue)";
+            minesMult += 0.22;
+            document.getElementById("minesMult").innerText = `${minesMult.toFixed(2)}x`;
+          }
+        };
+        grid.appendChild(t);
+      }
+    }
+    function cashoutMines() {
+      if (!playingMines || minesMult <= 1.00) return;
+      playingMines = false; playCashoutChime();
+      const profit = Math.round(100 * minesMult) - 100;
+      document.getElementById("minesMult").innerText = `✅ +${profit} PTS`;
+      document.getElementById("minesMult").style.color = "var(--success)";
+      recordRound("Cyber Mines", profit);
+      document.getElementById("minesBtn").style.display = "block";
+      document.getElementById("minesCashoutBtn").style.display = "none";
+    }
+
+    // ==========================================
+    // 8. SPIN & WIN LUCKY WHEEL
+    // ==========================================
+    const wheelCanvas = document.getElementById('wheelCanvas');
+    const wCtx = wheelCanvas.getContext('2d');
+    const slices = [
+      { label: "100 PTS", val: 100, color: "#e11d48" },
+      { label: "250 PTS", val: 250, color: "#2563eb" },
+      { label: "50 PTS",  val: 50,  color: "#16a34a" },
+      { label: "500 PTS", val: 500, color: "#d97706" },
+      { label: "150 PTS", val: 150, color: "#7c3aed" },
+      { label: "1000 PTS",val: 1000,color: "#db2777" },
+      { label: "75 PTS",  val: 75,  color: "#0d9488" },
+      { label: "300 PTS", val: 300, color: "#4f46e5" }
+    ];
+    let wheelDeg = 0, spinning = false;
+
+    function drawWheel() {
+      const arc = (2 * Math.PI) / slices.length;
+      slices.forEach((s, i) => {
+        const angle = i * arc;
+        wCtx.beginPath();
+        wCtx.moveTo(125, 125);
+        wCtx.arc(125, 125, 125, angle, angle + arc);
+        wCtx.fillStyle = s.color; wCtx.fill();
+        wCtx.save();
+        wCtx.translate(125, 125);
+        wCtx.rotate(angle + arc / 2);
+        wCtx.fillStyle = "#fff";
+        wCtx.font = "bold 13px sans-serif";
+        wCtx.fillText(s.label, 42, 5);
+        wCtx.restore();
+      });
+    }
+    drawWheel();
+
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+      document.getElementById('wheelResultText').innerText = "Spinning...";
+      const extraSpins = 1440 + Math.floor(Math.random() * 1440);
+      wheelDeg += extraSpins;
+      wheelCanvas.style.transform = `rotate(${wheelDeg}deg)`;
+
+      setTimeout(() => {
+        spinning = false;
+        playCashoutChime();
+        const winSlice = slices[Math.floor(Math.random() * slices.length)];
+        recordRound("Spin & Win Wheel", winSlice.val);
+        document.getElementById('wheelResultText').innerText = `🎉 You Won +${winSlice.val} Virtual PTS!`;
+      }, 3650);
+    }
+
+    // ==========================================
+    // 9. INVITE, DEPOSIT MODAL, & AI SUPPORT
+    // ==========================================
+    let invitedFriends = 0, refEarned = 0;
+    function copyReferralLink() {
+      const link = document.getElementById('refLinkBox').innerText;
+      navigator.clipboard?.writeText(link);
+      alert("📋 Study Invite Link Copied!");
+    }
+    function simulateFriendJoin() {
+      invitedFriends++; refEarned += 250;
+      playCashoutChime();
+      document.getElementById('invitedCount').innerText = invitedFriends;
+      document.getElementById('referralEarned').innerText = refEarned + " PTS";
+      recordRound("Referral Bonus", 250);
+    }
+
+    function openDepositModal() { document.getElementById('depositModal').style.display = 'flex'; }
+    function closeDepositModal() { document.getElementById('depositModal').style.display = 'none'; }
+    function claimDepositPack(amt) {
+      playCashoutChime();
+      recordRound("Virtual Vault Refill", amt);
+      closeDepositModal();
+    }
+    function redeemPromoCode() {
+      const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+      if (code === "STUDY2026" || code === "YENE") {
+        playCashoutChime();
+        recordRound("Promo Code (" + code + ")", 1000);
+        document.getElementById('promoCodeInput').value = "";
+        closeDepositModal();
+      } else {
+        alert("Try promo code: STUDY2026");
+      }
+    }
+
+    function syncAndClose() {
+      tg.sendData(JSON.stringify({ game: "Yene Lab Session", net_change: sessionProfit }));
+    }
+
+    function quickAsk(q) {
+      document.getElementById('chatInput').value = q;
+      sendChatMessage();
+    }
+
     async function sendChatMessage() {
       const input = document.getElementById('chatInput');
       const chatBox = document.getElementById('chatBox');
@@ -516,39 +1371,36 @@
       if (!text) return;
 
       const userDiv = document.createElement('div');
-      userDiv.className = 'msg-user';
-      userDiv.innerText = text;
+      userDiv.className = 'msg-user'; userDiv.innerText = text;
       chatBox.appendChild(userDiv);
       input.value = '';
       chatBox.scrollTop = chatBox.scrollHeight;
 
       if (text.toLowerCase().includes('bonus') || text.toLowerCase().includes('refill')) {
-        recordRound("AI Study Bonus", 500);
+        playCashoutChime();
+        recordRound("Support Study Bonus", 500);
       }
 
       const loadingDiv = document.createElement('div');
-      loadingDiv.className = 'msg-ai';
-      loadingDiv.innerText = 'Thinking...';
+      loadingDiv.className = 'msg-ai'; loadingDiv.innerText = 'Thinking...';
       chatBox.appendChild(loadingDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
 
       if (!geminiApiKey || geminiApiKey.includes("PASTE")) {
-        loadingDiv.innerText = "⚠️ API key missing! Make sure you added &key={GEMINI_API_KEY} in bot.py and ran /start.";
+        loadingDiv.innerText = "✅ Virtual +500 PTS credited if you asked for a bonus! (To enable live Gemini AI replies, ensure &key={GEMINI_API_KEY} is in bot.py).";
         return;
       }
 
-      const systemPrompt = `You are the witty Arcade Lab AI Coach inside a Telegram Mini App probability simulator.
-      Live User Stats: Wallet=${currentWalletBalance} virtual PTS, Session Profit=${sessionProfit} PTS, Games Played=${sessionGames}.
-      Keep replies short (2-3 sentences max). Remind them tokens are 100% virtual for probability study.
+      const systemPrompt = `You are the 24/7 Support & Probability Coach inside the Yene Lab Telegram Mini App.
+      User Stats: Wallet=${currentWalletBalance} virtual PTS, Profit=${sessionProfit} PTS, Rounds=${sessionGames}.
+      Keep replies helpful and concise (2-3 sentences max). Remind users all tokens are 100% virtual for study.
       User says: ${text}`;
 
       try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiApiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: systemPrompt }] }]
-          })
+          body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
         });
         const data = await res.json();
         loadingDiv.innerText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "🤖 Check your Gemini API key!";
@@ -556,59 +1408,6 @@
         loadingDiv.innerText = "⚠️ Network error talking to Gemini API.";
       }
       chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    // --- 4. CHICKEN LOGIC ---
-    let chickenMult = 1.00, trapIndex = 0, playingChicken = false;
-
-    function startChicken() {
-      if (currentWalletBalance < 100) {
-        alert("Not enough tokens! Switch to Dashboard and ask the AI Coach for a 'bonus'!");
-        return;
-      }
-      playingChicken = true; chickenMult = 1.00;
-      trapIndex = Math.floor(Math.random() * 5);
-      document.getElementById("chickenMult").innerText = "1.00x";
-      document.getElementById("chickenMult").style.color = "#fff";
-      document.getElementById("chickenBtn").style.display = "none";
-      document.getElementById("chickenCashoutBtn").style.display = "block";
-      
-      const grid = document.getElementById("chickenGrid");
-      grid.innerHTML = "";
-      for (let i = 0; i < 5; i++) {
-        const tile = document.createElement("div");
-        tile.className = "tile"; tile.innerText = "❓";
-        tile.onclick = () => clickTile(i, tile);
-        grid.appendChild(tile);
-      }
-    }
-
-    function clickTile(idx, el) {
-      if (!playingChicken || el.innerText !== "❓") return;
-      if (idx === trapIndex) {
-        el.innerText = "🦊"; el.style.background = "var(--danger)";
-        playingChicken = false;
-        document.getElementById("chickenMult").innerText = "Caught! (-100 PTS)";
-        document.getElementById("chickenMult").style.color = "var(--danger)";
-        recordRound("Chicken Grid", -100);
-        document.getElementById("chickenBtn").style.display = "block";
-        document.getElementById("chickenCashoutBtn").style.display = "none";
-      } else {
-        el.innerText = "🐔"; el.style.background = "var(--success)";
-        chickenMult += 0.25;
-        document.getElementById("chickenMult").innerText = `${chickenMult.toFixed(2)}x`;
-      }
-    }
-
-    function cashoutChicken() {
-      if (!playingChicken || chickenMult <= 1.00) return;
-      playingChicken = false;
-      const profit = Math.round(100 * chickenMult) - 100;
-      document.getElementById("chickenMult").innerText = `✅ +${profit} PTS`;
-      document.getElementById("chickenMult").style.color = "var(--success)";
-      recordRound("Chicken Grid", profit);
-      document.getElementById("chickenBtn").style.display = "block";
-      document.getElementById("chickenCashoutBtn").style.display = "none";
     }
   </script>
 </body>
